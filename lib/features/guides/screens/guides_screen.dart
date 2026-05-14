@@ -26,6 +26,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/network/api_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 // ─── Category config ─────────────────────────────────────────────
 const List<Map<String, String>> _categories = [
@@ -78,11 +79,18 @@ class _GuidesScreenState extends State<GuidesScreen> {
   bool          _isLoading   = true;
   String?       _error;
   String?       _selectedCat;
+  String?       _userRole;
 
   @override
   void initState() {
     super.initState();
     _fetchGuides();
+    _loadUserRole();
+  }
+
+  Future<void> _loadUserRole() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (mounted) setState(() => _userRole = prefs.getString('user_role'));
   }
 
   Future<void> _fetchGuides() async {
@@ -110,6 +118,18 @@ class _GuidesScreenState extends State<GuidesScreen> {
           IconButton(icon: const Icon(Icons.refresh), onPressed: _fetchGuides),
         ],
       ),
+      floatingActionButton: (_userRole == 'admin' || _userRole == 'super_admin')
+          ? FloatingActionButton.extended(
+              backgroundColor: AppColors.primary,
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const _AddGuideScreen()),
+              ).then((_) => _fetchGuides()),
+              icon: const Icon(Icons.add, color: Colors.white),
+              label: Text('Add Guide', style: GoogleFonts.inter(
+                  color: Colors.white, fontWeight: FontWeight.w600)),
+            )
+          : null,
       body: Column(
         children: [
 
@@ -701,4 +721,177 @@ class _GuideDetailScreenState extends State<_GuideDetailScreen> {
       ]),
     );
   }
+}
+
+class _AddGuideScreen extends StatefulWidget {
+  const _AddGuideScreen({super.key});
+  @override
+  State<_AddGuideScreen> createState() => _AddGuideScreenState();
+}
+
+class _AddGuideScreenState extends State<_AddGuideScreen> {
+  final _titleCtrl    = TextEditingController();
+  final _descCtrl     = TextEditingController();
+  final _stepsCtrl    = TextEditingController();
+  final _docsCtrl     = TextEditingController();
+  final _officeCtrl   = TextEditingController();
+  final _addressCtrl  = TextEditingController();
+  final _feesCtrl     = TextEditingController();
+  final _daysCtrl     = TextEditingController();
+  final _linkCtrl     = TextEditingController();
+  final _tipsCtrl     = TextEditingController();
+  String _category = 'other';
+  bool   _saving   = false;
+
+  Future<void> _save() async {
+    if (_titleCtrl.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('Title is required.', style: GoogleFonts.inter()),
+        backgroundColor: Colors.red));
+      return;
+    }
+    setState(() => _saving = true);
+    try {
+      await ApiService.createGuide({
+        'title':              _titleCtrl.text.trim(),
+        'description':        _descCtrl.text.trim().isEmpty
+            ? 'No description provided.' : _descCtrl.text.trim(),
+        'category':           _category,
+        'steps':              _stepsCtrl.text.trim().isEmpty
+            ? 'No steps provided.' : _stepsCtrl.text.trim(),
+        'documents_needed':   _docsCtrl.text.trim().isEmpty
+            ? null : _docsCtrl.text.trim(),
+        'office_name':        _officeCtrl.text.trim().isEmpty
+            ? null : _officeCtrl.text.trim(),
+        'office_address':     _addressCtrl.text.trim().isEmpty
+            ? null : _addressCtrl.text.trim(),
+        'approximate_cost':   _feesCtrl.text.trim().isEmpty
+            ? null : _feesCtrl.text.trim(),
+        'estimated_time':     _daysCtrl.text.trim().isEmpty
+            ? null : '${_daysCtrl.text.trim()} days',
+        'online_link':        _linkCtrl.text.trim().isEmpty
+            ? null : _linkCtrl.text.trim(),
+        'tips':               _tipsCtrl.text.trim().isEmpty
+            ? null : _tipsCtrl.text.trim(),
+        'village_id':         '1',
+      });
+      if (mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Guide added!', style: GoogleFonts.inter()),
+          backgroundColor: const Color(0xFF166534)));
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _saving = false);
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(e.toString(), style: GoogleFonts.inter()),
+          backgroundColor: Colors.red));
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      appBar: AppBar(
+        backgroundColor: AppColors.primary, foregroundColor: Colors.white, elevation: 0,
+        leading: IconButton(icon: const Icon(Icons.arrow_back_ios_rounded, size: 18),
+            onPressed: () => Navigator.pop(context)),
+        title: Text('Add Guide', style: GoogleFonts.playfairDisplay(
+            fontSize: 20, fontWeight: FontWeight.w600, color: Colors.white)),
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          _lbl('Title *'), _field(_titleCtrl, 'e.g. How to get Birth Certificate'),
+          _lbl('Description'), _field(_descCtrl, 'Brief overview', maxLines: 2),
+          _lbl('Category'),
+          _drop(value: _category,
+            items: ['ration_card','birth_certificate','caste_certificate','income_certificate',
+                    'aadhaar','pension','land_records','health','education','other'],
+            labels: {'ration_card':'🛒 Ration Card','birth_certificate':'👶 Birth Certificate',
+              'caste_certificate':'📜 Caste Certificate','income_certificate':'💰 Income Certificate',
+              'aadhaar':'🪪 Aadhaar','pension':'👴 Pension','land_records':'🏡 Land Records',
+              'health':'🏥 Health','education':'📚 Education','other':'📌 Other'},
+            onChanged: (v) => setState(() => _category = v!)),
+          _lbl('Steps (one per line)'), _field(_stepsCtrl, 'Step 1: Go to...\nStep 2: Fill form...', maxLines: 5),
+          _lbl('Documents Required'), _field(_docsCtrl, 'Aadhaar, Photo...', maxLines: 2),
+          _lbl('Office Name'), _field(_officeCtrl, 'e.g. Block Development Office'),
+          _lbl('Office Address'), _field(_addressCtrl, 'e.g. Gaya, Bihar'),
+          _lbl('Fees (₹)'), _field(_feesCtrl, 'e.g. Free / ₹50'),
+          _lbl('Estimated Days'), _field(_daysCtrl, 'e.g. 7', keyboardType: TextInputType.number),
+          _lbl('Online Link (optional)'), _field(_linkCtrl, 'https://...'),
+          _lbl('Tips from Admin'), _field(_tipsCtrl, 'Any helpful advice', maxLines: 2),
+          const SizedBox(height: 24),
+          SizedBox(width: double.infinity,
+            child: ElevatedButton(
+              onPressed: _saving ? null : _save,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                padding: const EdgeInsets.symmetric(vertical: 14)),
+              child: _saving
+                  ? const SizedBox(width: 20, height: 20,
+                      child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                  : Text('Save Guide', style: GoogleFonts.inter(
+                      color: Colors.white, fontSize: 14, fontWeight: FontWeight.w600)),
+            )),
+          const SizedBox(height: 32),
+        ]),
+      ),
+    );
+  }
+
+  Widget _lbl(String t) => Padding(padding: const EdgeInsets.only(bottom: 6, top: 4),
+    child: Text(t, style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w600,
+        color: AppColors.textPrimary)));
+
+  Widget _field(TextEditingController c, String hint,
+      {int maxLines = 1, TextInputType keyboardType = TextInputType.text}) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 14),
+      child: TextField(
+        controller: c,
+        maxLines: maxLines,
+        keyboardType: maxLines > 1 ? TextInputType.multiline : keyboardType,
+        textInputAction: maxLines > 1
+            ? TextInputAction.newline
+            : TextInputAction.next,
+        style: GoogleFonts.inter(fontSize: 13),
+        decoration: InputDecoration(
+          hintText: hint,
+          hintStyle: GoogleFonts.inter(color: AppColors.textHint, fontSize: 13),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: AppColors.border)),
+          enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: AppColors.border)),
+          focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: AppColors.primary)),
+          filled: true,
+          fillColor: Colors.white,
+        ),
+      ),
+    );
+  }
+
+  Widget _drop({required String value, required List<String> items,
+      required Map<String,String> labels, required void Function(String?) onChanged}) =>
+      Padding(padding: const EdgeInsets.only(bottom: 14),
+        child: Container(padding: const EdgeInsets.symmetric(horizontal: 14),
+          decoration: BoxDecoration(color: Colors.white,
+            border: Border.all(color: AppColors.border),
+            borderRadius: BorderRadius.circular(12)),
+          child: DropdownButtonHideUnderline(child: DropdownButton<String>(
+            value: value, isExpanded: true,
+            style: GoogleFonts.inter(fontSize: 13, color: AppColors.textPrimary),
+            items: items.map((v) => DropdownMenuItem(value: v,
+                child: Text(labels[v] ?? v))).toList(),
+            onChanged: onChanged))));
 }

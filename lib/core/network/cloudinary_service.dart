@@ -49,6 +49,10 @@ class CloudinaryService {
           'file':          'data:$mediaType;base64,$base64',
           'upload_preset': _uploadPreset,
         },
+      ).timeout(
+        const Duration(seconds: 30),
+        onTimeout: () => throw Exception(
+            'Upload timed out. Check your internet connection.'),
       );
 
       if (response.statusCode == 200) {

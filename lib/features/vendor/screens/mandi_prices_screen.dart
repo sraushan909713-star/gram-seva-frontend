@@ -122,7 +122,7 @@ class _MandiPricesScreenState extends State<MandiPricesScreen> {
         elevation: 0,
       ),
       floatingActionButton:
-          (_userRole == 'vendor' || _userRole == 'admin' || _userRole == 'super_admin')
+          (_userRole == 'vendor' || _userRole == 'super_admin')
               ? FloatingActionButton.extended(
                   backgroundColor: AppColors.primary,
                   onPressed: () => Navigator.push(

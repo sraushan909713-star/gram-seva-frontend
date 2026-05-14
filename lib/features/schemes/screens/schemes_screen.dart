@@ -19,8 +19,10 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/network/api_service.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'my_scheme_screen.dart';
 import 'my_scheme_screen.dart' show MySchemeScreen;
+
 
 
 // ── Category enum — must match backend SchemeCategory exactly ─────
@@ -80,11 +82,18 @@ class _SchemesScreenState extends State<SchemesScreen> {
   String?       _selectedCat; // null = all categories
   final         _searchCtrl   = TextEditingController();
   bool          _showSearch   = false;
+  String? _userRole;
 
   @override
   void initState() {
     super.initState();
     _fetchSchemes();
+    _loadUserRole();
+  }
+
+  Future<void> _loadUserRole() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (mounted) setState(() => _userRole = prefs.getString('user_role'));
   }
 
   // ── GET /schemes ──────────────────────────────────────────────
@@ -102,10 +111,11 @@ class _SchemesScreenState extends State<SchemesScreen> {
     }
   }
 
-  void _openDetail(dynamic scheme) {
-    Navigator.of(context).push(
+  void _openDetail(dynamic scheme) async {                                        // ✅ CHANGE — async now
+    final wasDeleted = await Navigator.of(context).push<bool>(                    // ✅ CHANGE — await result
       MaterialPageRoute(builder: (_) => _SchemeDetailScreen(schemeId: scheme['id'])),
     );
+    if (wasDeleted == true) _fetchSchemes();                                      // ✅ ADD — refresh on delete
   }
 
   @override
@@ -136,6 +146,18 @@ class _SchemesScreenState extends State<SchemesScreen> {
           IconButton(icon: const Icon(Icons.refresh), onPressed: _fetchSchemes),
         ],
       ),
+      floatingActionButton: (_userRole == 'admin' || _userRole == 'super_admin')
+          ? FloatingActionButton.extended(
+              backgroundColor: AppColors.primary,
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const _AddSchemeScreen()),
+              ).then((_) => _fetchSchemes()),
+              icon: const Icon(Icons.add, color: Colors.white),
+              label: Text('Add Scheme', style: GoogleFonts.inter(
+                  color: Colors.white, fontWeight: FontWeight.w600)),
+            )
+          : null,
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -470,12 +492,19 @@ class _SchemeDetailScreenState extends State<_SchemeDetailScreen> {
   String? _error;
   List<dynamic> _members    = [];
   bool          _membersLoading = true;
+  String? _userRole;
 
   @override
   void initState() {
     super.initState();
     _fetchDetail();
     _fetchMembers();
+    _loadUserRole();
+  }
+
+  Future<void> _loadUserRole() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (mounted) setState(() => _userRole = prefs.getString('user_role'));
   }
 
   Future<void> _fetchDetail() async {
@@ -497,6 +526,209 @@ class _SchemeDetailScreenState extends State<_SchemeDetailScreen> {
     }
   }
 
+  Future<void> _showAddMemberDialog() async {
+    final nameCtrl     = TextEditingController();
+    final relNameCtrl  = TextEditingController();
+    String gender      = 'male';
+
+    await showDialog(
+      context: context,
+      builder: (_) => StatefulBuilder(
+        builder: (ctx, setS) => AlertDialog(
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16)),
+          title: Text('Add Beneficiary',
+              style: GoogleFonts.playfairDisplay(
+                  fontWeight: FontWeight.w700)),
+          content: Column(mainAxisSize: MainAxisSize.min, children: [
+            TextField(
+              controller: nameCtrl,
+              style: GoogleFonts.inter(fontSize: 13),
+              decoration: InputDecoration(
+                hintText: 'Full name',
+                hintStyle: GoogleFonts.inter(color: AppColors.textHint),
+                border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10)),
+                contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 12, vertical: 10),
+              ),
+            ),
+            const SizedBox(height: 10),
+            TextField(
+              controller: relNameCtrl,
+              style: GoogleFonts.inter(fontSize: 13),
+              decoration: InputDecoration(
+                hintText: 'Father / Husband name',
+                hintStyle: GoogleFonts.inter(color: AppColors.textHint),
+                border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10)),
+                contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 12, vertical: 10),
+              ),
+            ),
+            const SizedBox(height: 10),
+            Row(children: [
+              Text('Gender:', style: GoogleFonts.inter(fontSize: 13)),
+              const SizedBox(width: 12),
+              ChoiceChip(
+                label: Text('Male', style: GoogleFonts.inter(fontSize: 12)),
+                selected: gender == 'male',
+                selectedColor: AppColors.primaryLight,
+                onSelected: (_) => setS(() => gender = 'male'),
+              ),
+              const SizedBox(width: 8),
+              ChoiceChip(
+                label: Text('Female', style: GoogleFonts.inter(fontSize: 12)),
+                selected: gender == 'female',
+                selectedColor: const Color(0xFFFCE4EC),
+                onSelected: (_) => setS(() => gender = 'female'),
+              ),
+            ]),
+          ]),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text('Cancel',
+                  style: GoogleFonts.inter(color: Colors.grey)),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10)),
+              ),
+              onPressed: () async {
+                if (nameCtrl.text.trim().isEmpty) return;
+                Navigator.pop(context);
+                try {
+                  await ApiService.addSchemeMember(widget.schemeId, {
+                    'name':          nameCtrl.text.trim(),
+                    'relative_name': relNameCtrl.text.trim().isEmpty
+                        ? null : relNameCtrl.text.trim(),
+                    'gender':        gender,
+                  });
+                  _fetchMembers();
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                      content: Text('Member added!',
+                          style: GoogleFonts.inter()),
+                      backgroundColor: AppColors.primary,
+                    ));
+                  }
+                } catch (e) {
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                      content: Text(e.toString(),
+                          style: GoogleFonts.inter()),
+                      backgroundColor: Colors.red,
+                    ));
+                  }
+                }
+              },
+              child: Text('Add',
+                  style: GoogleFonts.inter(color: Colors.white)),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ─── Open URL with normalization + fallback ─────────────────────────────────  // ✅ ADD
+  // Handles three common failure modes seen in the wild:
+  //   1. URL stored without scheme (e.g. "myscheme.gov.in/...") → prepend https://
+  //   2. Android 11+ queries restriction → skip canLaunchUrl, try launchUrl directly
+  //   3. Any unexpected exception → show readable snackbar instead of silent fail
+  Future<void> _openExternalUrl(String? raw) async {
+    if (raw == null || raw.trim().isEmpty) return;
+    var clean = raw.trim();
+    if (!clean.startsWith('http://') && !clean.startsWith('https://')) {
+      clean = 'https://$clean';
+    }
+    final uri = Uri.tryParse(clean);
+    if (uri == null) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('लिंक अमान्य है (Invalid link)',
+              style: GoogleFonts.notoSansDevanagari()),
+          backgroundColor: AppColors.error,
+        ));
+      }
+      return;
+    }
+    try {
+      final launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
+      if (!launched && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('लिंक नहीं खुल सका: $clean',
+              style: GoogleFonts.notoSansDevanagari()),
+          backgroundColor: AppColors.error,
+        ));
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('लिंक खोलने में त्रुटि: $e',
+              style: GoogleFonts.notoSansDevanagari()),
+          backgroundColor: AppColors.error,
+        ));
+      }
+    }
+  }
+
+  // ─── Delete Scheme ──────────────────────────────────────────────────────────  // ✅ ADD
+  // Any admin or super_admin can delete (matches GOLDEN RULE).
+  // Backend soft-deletes (is_active=False).
+  Future<void> _confirmDelete() async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text('Delete Scheme?',
+            style: GoogleFonts.playfairDisplay(
+                fontWeight: FontWeight.w700, color: Colors.red)),
+        content: Text(
+          'This will hide "${_scheme?['name'] ?? 'this scheme'}" from villagers. '
+          'The data is preserved on the server but no one will see it.',
+          style: GoogleFonts.inter(fontSize: 13),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text('Cancel', style: GoogleFonts.inter(color: Colors.grey)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+            onPressed: () => Navigator.pop(context, true),
+            child: Text('Delete', style: GoogleFonts.inter(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+    if (confirm != true) return;
+
+    try {
+      await ApiService.deleteScheme(widget.schemeId);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Scheme deleted.', style: GoogleFonts.inter()),
+          backgroundColor: Colors.orange,
+        ));
+        Navigator.pop(context, true);  // tell parent to refresh
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(e.toString(), style: GoogleFonts.inter()),
+          backgroundColor: Colors.red,
+        ));
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final cat = (_scheme?['category'] as String?) ?? 'other';
@@ -511,6 +743,14 @@ class _SchemeDetailScreenState extends State<_SchemeDetailScreen> {
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
+        actions: [                                                                  // ✅ ADD
+          if (_userRole == 'admin' || _userRole == 'super_admin')                   // ✅ ADD
+            IconButton(                                                             // ✅ ADD
+              icon: const Icon(Icons.delete_outline_rounded),                       // ✅ ADD
+              tooltip: 'Delete scheme',                                             // ✅ ADD
+              onPressed: _confirmDelete,                                            // ✅ ADD
+            ),                                                                      // ✅ ADD
+        ],                                                                          // ✅ ADD
       ),
       body: _isLoading
           ? Center(child: CircularProgressIndicator(color: AppColors.primary))
@@ -577,6 +817,14 @@ class _SchemeDetailScreenState extends State<_SchemeDetailScreen> {
                       color: const Color(0xFF9C27B0),
                     ),
 
+                    // — Documents required ──────────────────────             // ✅ ADD
+                    _buildSection(                                             // ✅ ADD
+                      icon: Icons.folder_outlined,                             // ✅ ADD
+                      title: 'आवश्यक दस्तावेज़ (Documents Required)',           // ✅ ADD
+                      content: _scheme?['documents_required'] ?? '',            // ✅ ADD
+                      color: const Color(0xFF00897B),                          // ✅ ADD
+                    ),                                                         // ✅ ADD
+
                     // — Additional info (if present) ─────────────
                     if (_scheme?['additional_info'] != null &&
                         (_scheme!['additional_info'] as String).isNotEmpty)
@@ -594,22 +842,8 @@ class _SchemeDetailScreenState extends State<_SchemeDetailScreen> {
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton.icon(
-                          onPressed: () async {
-                            // open URL in browser directly 
-                            final url = Uri.parse(_scheme!['official_link']);
-                            if (await canLaunchUrl(url)) {
-                              await launchUrl(url,
-                                mode: LaunchMode.externalApplication);
-                            } else {
-                              if (mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                                  content: Text('लिंक नहीं खुल सका।',
-                                    style: GoogleFonts.notoSansDevanagari()),
-                                  backgroundColor: AppColors.error,
-                                ));
-                              }
-                            }
-                          },
+                          onPressed: () =>                      
+                            _openExternalUrl(_scheme?['official_link'] as String?),
                           icon: const Icon(Icons.link, color: Colors.white),
                           label: Text('सरकारी वेबसाइट खोलें',
                             style: GoogleFonts.notoSansDevanagari(
@@ -622,6 +856,30 @@ class _SchemeDetailScreenState extends State<_SchemeDetailScreen> {
                         ),
                       ),
                     ],
+
+                    // — YouTube guide button (if present) ─────────         // ✅ ADD
+                    if (_scheme?['youtube_link'] != null &&                  // ✅ ADD
+                        (_scheme!['youtube_link'] as String).isNotEmpty) ...[ // ✅ ADD
+                      const SizedBox(height: 8),                             // ✅ ADD
+                      SizedBox(                                              // ✅ ADD
+                        width: double.infinity,                              // ✅ ADD
+                        child: ElevatedButton.icon(                          // ✅ ADD
+                          onPressed: () =>                                   // ✅ ADD
+                            _openExternalUrl(_scheme?['youtube_link'] as String?), // ✅ ADD
+                          icon: const Icon(Icons.play_circle_outline,        // ✅ ADD
+                            color: Colors.white),                            // ✅ ADD
+                          label: Text('YouTube गाइड देखें',                  // ✅ ADD
+                            style: GoogleFonts.notoSansDevanagari(           // ✅ ADD
+                              color: Colors.white, fontWeight: FontWeight.w500)), // ✅ ADD
+                          style: ElevatedButton.styleFrom(                   // ✅ ADD
+                            backgroundColor: const Color(0xFFCC0000),        // ✅ ADD — YouTube red
+                            padding: const EdgeInsets.symmetric(vertical: 14), // ✅ ADD
+                            shape: RoundedRectangleBorder(                   // ✅ ADD
+                              borderRadius: BorderRadius.circular(10))),     // ✅ ADD
+                        ),                                                   // ✅ ADD
+                      ),                                                     // ✅ ADD
+                    ],                                                       // ✅ ADD
+
                     // — Availing Members section ─────────────────
                     const SizedBox(height: 16),
                     Container(
@@ -645,6 +903,31 @@ class _SchemeDetailScreenState extends State<_SchemeDetailScreen> {
                             style: GoogleFonts.inter(
                               fontSize: 13, fontWeight: FontWeight.bold,
                               color: AppColors.primary)),
+                          if (_userRole == 'admin' || _userRole == 'super_admin') ...[
+                            const SizedBox(width: 8),
+                            GestureDetector(
+                              onTap: _showAddMemberDialog,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: AppColors.primary,
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: Row(mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                  const Icon(Icons.add, size: 12,
+                                      color: Colors.white),
+                                  const SizedBox(width: 3),
+                                  Text('Add',
+                                      style: GoogleFonts.inter(
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w700,
+                                          color: Colors.white)),
+                                ]),
+                              ),
+                            ),
+                          ],
                         ]),
                         const SizedBox(height: 12),
 
@@ -745,4 +1028,152 @@ class _MemberTile extends StatelessWidget {
       ]),
     );
   }
+}
+
+class _AddSchemeScreen extends StatefulWidget {
+  const _AddSchemeScreen({super.key});
+  @override
+  State<_AddSchemeScreen> createState() => _AddSchemeScreenState();
+}
+
+class _AddSchemeScreenState extends State<_AddSchemeScreen> {
+  final _titleCtrl       = TextEditingController();
+  final _descCtrl        = TextEditingController();
+  final _eligCtrl        = TextEditingController();
+  final _howCtrl         = TextEditingController();
+  final _benefitsCtrl    = TextEditingController();
+  final _docsCtrl        = TextEditingController();
+  final _youtubeLinkCtrl = TextEditingController();
+  final _applyLinkCtrl   = TextEditingController();
+  String _category = 'other';
+  bool   _saving   = false;
+
+  Future<void> _save() async {
+    // ─── Validate mandatory fields (must match backend SchemeCreate) ───   // ✅ CHANGE
+    final missing = <String>[];                                             // ✅ ADD
+    if (_titleCtrl.text.trim().isEmpty) missing.add('Title');               // ✅ ADD
+    if (_descCtrl.text.trim().isEmpty)  missing.add('Description');         // ✅ ADD
+    if (_eligCtrl.text.trim().isEmpty)  missing.add('Eligibility');         // ✅ ADD
+    if (_howCtrl.text.trim().isEmpty)   missing.add('How to Apply');        // ✅ ADD
+    if (_docsCtrl.text.trim().isEmpty) missing.add('Documents Required');   // ✅ ADD
+    if (missing.isNotEmpty) {                                               // ✅ ADD
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(                  // ✅ ADD
+        content: Text('Please fill: ${missing.join(', ')}',                 // ✅ ADD
+            style: GoogleFonts.inter()),                                    // ✅ ADD
+        backgroundColor: Colors.red));                                      // ✅ ADD
+      return;                                                               // ✅ ADD
+    }                                                                       // ✅ ADD
+
+    setState(() => _saving = true);
+    try {
+      await ApiService.createScheme({
+        'name':            _titleCtrl.text.trim(),
+        'description':     _descCtrl.text.trim(),                           // ✅ CHANGE — mandatory, no fallback
+        'category':        _category,
+        'eligibility':     _eligCtrl.text.trim(),                           // ✅ CHANGE — mandatory, no fallback
+        'how_to_apply':    _howCtrl.text.trim(),                            // ✅ CHANGE — mandatory, no fallback
+        'documents_required': _docsCtrl.text.trim(),                        // ✅ ADD — mandatory
+        'official_link':   _applyLinkCtrl.text.trim().isEmpty
+            ? null : _applyLinkCtrl.text.trim(),
+        'youtube_link':    _youtubeLinkCtrl.text.trim().isEmpty             // ✅ ADD — this is what was missing!
+            ? null : _youtubeLinkCtrl.text.trim(),                          // ✅ ADD
+        'additional_info': _benefitsCtrl.text.trim().isEmpty
+            ? null : _benefitsCtrl.text.trim(),
+      });
+      if (mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Scheme added!', style: GoogleFonts.inter()),
+          backgroundColor: const Color(0xFF166534)));
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _saving = false);
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(e.toString(), style: GoogleFonts.inter()),
+          backgroundColor: Colors.red));
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      appBar: AppBar(
+        backgroundColor: AppColors.primary, foregroundColor: Colors.white, elevation: 0,
+        leading: IconButton(icon: const Icon(Icons.arrow_back_ios_rounded, size: 18),
+            onPressed: () => Navigator.pop(context)),
+        title: Text('Add Scheme', style: GoogleFonts.playfairDisplay(
+            fontSize: 20, fontWeight: FontWeight.w600, color: Colors.white)),
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          _lbl('Title *'), _field(_titleCtrl, 'e.g. Vriddha Pension Yojna'),
+          _lbl('Description *'), _field(_descCtrl, 'What is this scheme about?', maxLines: 3),  // ✅ CHANGE
+          _lbl('Category'),
+          _drop(value: _category,
+            items: ['health','farming','education','housing','finance','women','other'],
+            labels: {'health':'🏥 Health','farming':'🌾 Farming','education':'📚 Education',
+              'housing':'🏠 Housing','finance':'💰 Finance','women':'👩 Women','other':'📌 Other'},
+            onChanged: (v) => setState(() => _category = v!)),
+          _lbl('Eligibility *'), _field(_eligCtrl, 'Who can apply?', maxLines: 2),     // ✅ CHANGE
+          _lbl('How to Apply *'), _field(_howCtrl, 'Steps to apply', maxLines: 3),     // ✅ CHANGE
+          _lbl('Benefits'), _field(_benefitsCtrl, 'What will they get?', maxLines: 2),
+          _lbl('Documents Required *'), _field(_docsCtrl, 'Aadhaar, Ration Card... (or type "No documents required")', maxLines: 2),  // ✅ CHANGE
+          _lbl('YouTube Guide Link (optional)'), _field(_youtubeLinkCtrl, 'https://youtube.com/...'),
+          _lbl('Apply Online Link (optional)'), _field(_applyLinkCtrl, 'https://...'),
+          const SizedBox(height: 24),
+          SizedBox(width: double.infinity,
+            child: ElevatedButton(
+              onPressed: _saving ? null : _save,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                padding: const EdgeInsets.symmetric(vertical: 14)),
+              child: _saving
+                  ? const SizedBox(width: 20, height: 20,
+                      child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                  : Text('Save Scheme', style: GoogleFonts.inter(
+                      color: Colors.white, fontSize: 14, fontWeight: FontWeight.w600)),
+            )),
+          const SizedBox(height: 32),
+        ]),
+      ),
+    );
+  }
+
+  Widget _lbl(String t) => Padding(padding: const EdgeInsets.only(bottom: 6, top: 4),
+    child: Text(t, style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w600,
+        color: AppColors.textPrimary)));
+
+  Widget _field(TextEditingController c, String hint, {int maxLines = 1}) =>
+      Padding(padding: const EdgeInsets.only(bottom: 14),
+        child: TextField(controller: c, maxLines: maxLines,
+          style: GoogleFonts.inter(fontSize: 13),
+          decoration: InputDecoration(hintText: hint,
+            hintStyle: GoogleFonts.inter(color: AppColors.textHint, fontSize: 13),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: AppColors.border)),
+            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: AppColors.border)),
+            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: AppColors.primary)),
+            filled: true, fillColor: Colors.white)));
+
+  Widget _drop({required String value, required List<String> items,
+      required Map<String,String> labels, required void Function(String?) onChanged}) =>
+      Padding(padding: const EdgeInsets.only(bottom: 14),
+        child: Container(padding: const EdgeInsets.symmetric(horizontal: 14),
+          decoration: BoxDecoration(color: Colors.white,
+            border: Border.all(color: AppColors.border),
+            borderRadius: BorderRadius.circular(12)),
+          child: DropdownButtonHideUnderline(child: DropdownButton<String>(
+            value: value, isExpanded: true,
+            style: GoogleFonts.inter(fontSize: 13, color: AppColors.textPrimary),
+            items: items.map((v) => DropdownMenuItem(value: v,
+                child: Text(labels[v] ?? v))).toList(),
+            onChanged: onChanged))));
 }

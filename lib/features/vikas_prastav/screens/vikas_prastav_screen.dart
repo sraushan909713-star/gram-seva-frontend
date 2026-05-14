@@ -82,6 +82,7 @@ class _VikasPrastavScreenState extends State<VikasPrastavScreen> {
   String?       _error;
   String?       _selectedCat;
   String? _userRole;
+  String? _userBadge;
 
   @override
   void initState() {
@@ -92,7 +93,10 @@ class _VikasPrastavScreenState extends State<VikasPrastavScreen> {
 
   Future<void> _loadUserRole() async {
     final prefs = await SharedPreferences.getInstance();
-    if (mounted) setState(() => _userRole = prefs.getString('user_role'));
+    if (mounted) setState(() {
+      _userRole  = prefs.getString('user_role');
+      _userBadge = prefs.getString('badge');
+    });
   }
 
   // ── GET /vikas-prastav ────────────────────────────────────────
@@ -159,6 +163,7 @@ class _VikasPrastavScreenState extends State<VikasPrastavScreen> {
       backgroundColor: Colors.transparent,
       builder: (_) => _ProposalDetailSheet(
         proposalId:   proposal['id'],
+        userBadge: _userBadge,
         proposalSnap: proposal,       // ✅ list data for instant display
         onUpvote: () => _upvoteProposal(proposal['id']),
         userRole:     _userRole,
@@ -183,6 +188,17 @@ class _VikasPrastavScreenState extends State<VikasPrastavScreen> {
           IconButton(icon: const Icon(Icons.refresh), onPressed: _fetchProposals),
         ],
       ),
+      floatingActionButton: (_userBadge == 'durbe_niwasi' ||
+              _userRole == 'admin' || _userRole == 'super_admin')
+          ? FloatingActionButton.extended(
+              backgroundColor: AppColors.primary,
+              onPressed: _openCreateProposal,
+              icon: const Icon(Icons.add, color: Colors.white),
+              label: Text('नया प्रस्ताव',
+                  style: GoogleFonts.notoSansDevanagari(
+                      color: Colors.white, fontWeight: FontWeight.w600)),
+            )
+          : null,
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -241,16 +257,6 @@ class _VikasPrastavScreenState extends State<VikasPrastavScreen> {
                           ),
           ),
         ],
-      ),
-
-      // — FAB ────────────────────────────────────────────────────
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _openCreateProposal,
-        backgroundColor: AppColors.cta,
-        icon: const Icon(Icons.add_chart, color: Colors.white),
-        label: Text('प्रस्ताव दें',
-          style: GoogleFonts.notoSansDevanagari(
-            color: Colors.white, fontWeight: FontWeight.bold)),
       ),
     );
   }
@@ -488,12 +494,14 @@ class _ProposalDetailSheet extends StatefulWidget {
   final dynamic  proposalSnap;
   final VoidCallback onUpvote;
   final String?  userRole;
+  final String? userBadge;
   final VoidCallback? onDeleted;
   const _ProposalDetailSheet({
     required this.proposalId,
     required this.proposalSnap,
     required this.onUpvote,
     this.userRole,
+    this.userBadge,
     this.onDeleted,
   });
     @override
@@ -670,6 +678,9 @@ class _ProposalDetailSheetState extends State<_ProposalDetailSheet> {
                     style: GoogleFonts.inter(fontSize: 13, color: AppColors.textSecondary)),
                 ]),
 
+                const SizedBox(height: 12),
+                // ✅ Poster identity + date
+                _buildPosterRow(proposal),
                 const SizedBox(height: 14),
                 Divider(color: AppColors.border),
                 const SizedBox(height: 10),
@@ -753,7 +764,16 @@ class _ProposalDetailSheetState extends State<_ProposalDetailSheet> {
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton.icon(
-                    onPressed: widget.onUpvote,
+                    onPressed: (widget.userRole == 'admin' ||
+                            widget.userRole == 'super_admin' ||
+                            widget.userBadge == 'durbe_niwasi')
+                        ? widget.onUpvote
+                        : () => ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  'केवल Durbe Niwasi ही समर्थन कर सकते हैं।',
+                                  style: GoogleFonts.notoSansDevanagari()),
+                              )),
                     icon: const Icon(Icons.thumb_up_alt, color: Colors.white),
                     label: Text('मैं भी समर्थन करता हूं',
                       style: GoogleFonts.notoSansDevanagari(
@@ -770,6 +790,47 @@ class _ProposalDetailSheetState extends State<_ProposalDetailSheet> {
         ),
       ]),
     );
+  }
+
+  Widget _buildPosterRow(Map<String, dynamic> post) {
+    final name  = post['poster_name'] ?? 'Durbe Niwasi';
+    final photo = post['poster_photo'] as String?;
+    final dateStr = post['created_at'] as String?;
+
+    return Row(children: [
+      CircleAvatar(
+        radius: 16,
+        backgroundColor: AppColors.primaryLight,
+        backgroundImage: (photo != null && photo.isNotEmpty)
+            ? NetworkImage(photo) : null,
+        child: (photo == null || photo.isEmpty)
+            ? Text(name[0].toUpperCase(),
+                style: GoogleFonts.inter(
+                    fontSize: 13, fontWeight: FontWeight.w700,
+                    color: AppColors.primary))
+            : null,
+      ),
+      const SizedBox(width: 8),
+      Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text(name,
+            style: GoogleFonts.inter(
+                fontSize: 12, fontWeight: FontWeight.w600,
+                color: AppColors.textPrimary)),
+        if (dateStr != null)
+          Text(_formatDate(dateStr),
+              style: GoogleFonts.inter(
+                  fontSize: 11, color: AppColors.textHint)),
+      ]),
+    ]);
+  }
+
+  String _formatDate(String iso) {
+    try {
+      final dt = DateTime.parse(iso + 'Z').toLocal();
+      const m = ['','Jan','Feb','Mar','Apr','May','Jun',
+                  'Jul','Aug','Sep','Oct','Nov','Dec'];
+      return '${dt.day} ${m[dt.month]} ${dt.year}';
+    } catch (_) { return ''; }
   }
 
   // ══════════════════════════════════════════════════════════════════

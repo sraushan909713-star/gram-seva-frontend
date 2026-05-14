@@ -73,20 +73,52 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   // ─── Profile Photo Upload ───────────────────────────────────────────────────
-  // Shows a warning dialog first, then opens gallery, then uploads to Cloudinary
+  // Context-aware warning, then gallery, then Cloudinary upload.
+  // Handles badge auto-revoke when a verified user changes their DP.
   Future<void> _handlePhotoUpload() async {
-    // ✅ Step 1 — show face-visible instruction before picking
+    final currentBadge = _profile?['badge'] ?? 'none';                                  // ✅ ADD
+    final isVerified   = currentBadge == 'durbe_niwasi';                                // ✅ ADD
+
+    // ─── Step 1 — warning dialog (extra danger warning if verified) ───
     final proceed = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Text(
-          'Upload Profile Photo',
+          isVerified ? 'Change Profile Photo?' : 'Upload Profile Photo',                // ✅ CHANGE
           style: GoogleFonts.playfairDisplay(fontWeight: FontWeight.w700),
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            // ✅ ADD — red badge-revoke warning shown only to verified users
+            if (isVerified) ...[
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFEF2F2),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: const Color(0xFFFCA5A5)),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('⚠️', style: TextStyle(fontSize: 16)),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Your Durbe Niwasi badge will be removed. You will need to claim residency again and admin will re-approve you.',
+                        style: GoogleFonts.inter(
+                          fontSize: 12, color: const Color(0xFF991B1B),
+                          fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 10),
+            ],
+            // Face-visible reminder (always shown)
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
@@ -97,7 +129,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('⚠️', style: TextStyle(fontSize: 16)),
+                  const Text('📸', style: TextStyle(fontSize: 16)),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
@@ -118,11 +150,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
+              backgroundColor: isVerified ? Colors.red : AppColors.primary,             // ✅ CHANGE
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
             ),
             onPressed: () => Navigator.pop(context, true),
-            child: Text('Choose Photo', style: GoogleFonts.inter(color: Colors.white)),
+            child: Text(
+              isVerified ? 'Continue & remove badge' : 'Choose Photo',                  // ✅ CHANGE
+              style: GoogleFonts.inter(color: Colors.white),
+            ),
           ),
         ],
       ),
@@ -130,7 +165,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     if (proceed != true) return;
 
-    // ✅ Step 2 — pick from gallery
+    // ─── Step 2 — pick from gallery ───
     final picker = ImagePicker();
     final picked = await picker.pickImage(source: ImageSource.gallery, imageQuality: 80);
     if (picked == null) return;
@@ -138,23 +173,38 @@ class _ProfileScreenState extends State<ProfileScreen> {
     setState(() => _isUploadingPhoto = true);
 
     try {
-      // ✅ Step 3 — upload to Cloudinary
+      // ─── Step 3 — upload to Cloudinary ───
       final file = File(picked.path);
       final url  = await CloudinaryService.uploadImage(file);
 
-      // ✅ Step 4 — save URL to backend
-      await ApiService.updateProfilePhoto(url);
+      // ─── Step 4 — save URL to backend (now returns badge_revoked flag) ───
+      final result       = await ApiService.updateProfilePhoto(url);                    // ✅ CHANGE
+      final badgeRevoked = result['badge_revoked'] == true;                             // ✅ ADD
 
-      // ✅ Step 5 — refresh profile
+      // ─── Step 5 — refresh profile ───
       await _loadProfile();
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Profile photo updated!', style: GoogleFonts.inter()),
-            backgroundColor: AppColors.primary,
-          ),
-        );
+        if (badgeRevoked) {
+          // ✅ ADD — different message when badge was auto-revoked
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Photo updated. Your Durbe Niwasi badge has been removed.',
+                style: GoogleFonts.inter(),
+              ),
+              backgroundColor: Colors.orange,
+              duration: const Duration(seconds: 5),
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Profile photo updated!', style: GoogleFonts.inter()),
+              backgroundColor: AppColors.primary,
+            ),
+          );
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -294,8 +344,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   // ─── Delete Account ─────────────────────────────────────────────────────────
+  // Three-step flow:
+  //   1. Confirm intent
+  //   2. Enter password → backend verifies + sends OTP
+  //   3. Enter OTP      → backend verifies password+OTP again + soft-deletes
   Future<void> _handleDeleteAccount() async {
-    // Two-step confirmation — extra safety so nobody deletes accidentally
+    // ─── Step 1 — confirm intent ───
     final step1 = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
@@ -303,23 +357,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
         title: Text('Delete Account',
             style: GoogleFonts.playfairDisplay(
                 fontWeight: FontWeight.w700, color: Colors.red)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: const Color(0xFFFEF2F2),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFFFCA5A5)),
-              ),
-              child: Text(
-                '⚠️ This will permanently delete your account and all your data. '
-                'This action cannot be undone.',
-                style: GoogleFonts.inter(fontSize: 12, color: const Color(0xFF991B1B)),
-              ),
-            ),
-          ],
+        content: Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: const Color(0xFFFEF2F2),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: const Color(0xFFFCA5A5)),
+          ),
+          child: Text(
+            '⚠️ This will permanently delete your account. Your existing posts and votes will remain but will show as "Deleted user". This cannot be undone.',
+            style: GoogleFonts.inter(fontSize: 12, color: const Color(0xFF991B1B)),
+          ),
         ),
         actions: [
           TextButton(
@@ -328,90 +376,175 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: Text('Yes, Delete',
+            child: Text('Continue',
                 style: GoogleFonts.inter(color: Colors.red, fontWeight: FontWeight.w600)),
           ),
         ],
       ),
     );
-
     if (step1 != true) return;
 
-    // Step 2 — type "DELETE" to confirm
-    final controller = TextEditingController();
-    final step2 = await showDialog<bool>(
+    // ─── Step 2 — enter password, send OTP ───
+    final passwordController = TextEditingController();
+    String? sentOtp;  // dev mode: backend echoes OTP back for testing
+
+    final password = await showDialog<String?>(
       context: context,
-      builder: (_) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text('Are you absolutely sure?',
-            style: GoogleFonts.playfairDisplay(fontWeight: FontWeight.w700)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text('Type DELETE to confirm:', style: GoogleFonts.inter(fontSize: 13)),
-            const SizedBox(height: 10),
-            TextField(
-              controller: controller,
-              decoration: InputDecoration(
-                hintText: 'DELETE',
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-              ),
-              style: GoogleFonts.inter(fontWeight: FontWeight.w600),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: Text('Cancel', style: GoogleFonts.inter(color: Colors.grey)),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-            ),
-            onPressed: () {
-              if (controller.text.trim() == 'DELETE') {
-                Navigator.pop(context, true);
-              } else {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Please type DELETE exactly.',
-                        style: GoogleFonts.inter()),
-                    backgroundColor: Colors.red,
+      barrierDismissible: false,
+      builder: (dialogCtx) {
+        bool sending = false;
+        return StatefulBuilder(
+          builder: (ctx, setLocal) => AlertDialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            title: Text('Confirm Your Password',
+                style: GoogleFonts.playfairDisplay(fontWeight: FontWeight.w700)),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text('Enter your account password. We will send an OTP to your phone.',
+                    style: GoogleFonts.inter(fontSize: 12, color: const Color(0xFF6B7280))),
+                const SizedBox(height: 10),
+                TextField(
+                  controller: passwordController,
+                  obscureText: true,
+                  decoration: InputDecoration(
+                    hintText: 'Password',
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                   ),
-                );
-              }
-            },
-            child: Text('Delete Forever', style: GoogleFonts.inter(color: Colors.white)),
+                  style: GoogleFonts.inter(),
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: sending ? null : () => Navigator.pop(dialogCtx, null),
+                child: Text('Cancel', style: GoogleFonts.inter(color: Colors.grey)),
+              ),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                ),
+                onPressed: sending
+                    ? null
+                    : () async {
+                        final pw = passwordController.text.trim();
+                        if (pw.isEmpty) {
+                          ScaffoldMessenger.of(ctx).showSnackBar(
+                            SnackBar(content: Text('Enter your password',
+                                style: GoogleFonts.inter())),
+                          );
+                          return;
+                        }
+                        setLocal(() => sending = true);
+                        try {
+                          final res = await ApiService.requestAccountDeletion(pw);
+                          sentOtp = res['otp']?.toString();
+                          if (dialogCtx.mounted) Navigator.pop(dialogCtx, pw);
+                        } catch (e) {
+                          setLocal(() => sending = false);
+                          ScaffoldMessenger.of(ctx).showSnackBar(
+                            SnackBar(content: Text(e.toString(), style: GoogleFonts.inter()),
+                                backgroundColor: Colors.red),
+                          );
+                        }
+                      },
+                child: sending
+                    ? const SizedBox(width: 16, height: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                    : Text('Send OTP', style: GoogleFonts.inter(color: Colors.white)),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
+    );
+    if (password == null) return;
+
+    // ─── Step 3 — enter OTP, finalize delete ───
+    final otpController = TextEditingController();
+    if (sentOtp != null) otpController.text = sentOtp!;  // dev convenience
+
+    final deleted = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogCtx) {
+        return StatefulBuilder(
+          builder: (ctx, setLocal) => AlertDialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            title: Text('Enter OTP',
+                style: GoogleFonts.playfairDisplay(fontWeight: FontWeight.w700)),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text('We sent an OTP to your phone. Enter it to finalize deletion.',
+                    style: GoogleFonts.inter(fontSize: 12, color: const Color(0xFF6B7280))),
+                const SizedBox(height: 10),
+                TextField(
+                  controller: otpController,
+                  keyboardType: TextInputType.number,
+                  decoration: InputDecoration(
+                    hintText: 'OTP',
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  ),
+                  style: GoogleFonts.inter(fontWeight: FontWeight.w600),
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: _isDeleting ? null : () => Navigator.pop(dialogCtx, false),
+                child: Text('Cancel', style: GoogleFonts.inter(color: Colors.grey)),
+              ),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                ),
+                onPressed: _isDeleting
+                    ? null
+                    : () async {
+                        final otp = otpController.text.trim();
+                        if (otp.isEmpty) {
+                          ScaffoldMessenger.of(ctx).showSnackBar(
+                            SnackBar(content: Text('Enter the OTP',
+                                style: GoogleFonts.inter())),
+                          );
+                          return;
+                        }
+                        setState(() => _isDeleting = true);
+                        try {
+                          await ApiService.deleteAccount(password: password, otpCode: otp);
+                          final prefs = await SharedPreferences.getInstance();
+                          await prefs.clear();
+                          if (dialogCtx.mounted) Navigator.pop(dialogCtx, true);
+                        } catch (e) {
+                          setState(() => _isDeleting = false);
+                          ScaffoldMessenger.of(ctx).showSnackBar(
+                            SnackBar(content: Text(e.toString(), style: GoogleFonts.inter()),
+                                backgroundColor: Colors.red),
+                          );
+                        }
+                      },
+                child: _isDeleting
+                    ? const SizedBox(width: 16, height: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                    : Text('Delete Forever', style: GoogleFonts.inter(color: Colors.white)),
+              ),
+            ],
+          ),
+        );
+      },
     );
 
-    if (step2 != true) return;
-
-    setState(() => _isDeleting = true);
-    try {
-      await ApiService.deleteAccount();
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.clear();
-      if (mounted) {
-        Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(builder: (_) => const LoginScreen()),
-          (_) => false,
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() => _isDeleting = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.toString(), style: GoogleFonts.inter()),
-              backgroundColor: Colors.red),
-        );
-      }
+    if (deleted == true && mounted) {
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (_) => const LoginScreen()),
+        (_) => false,
+      );
     }
   }
 

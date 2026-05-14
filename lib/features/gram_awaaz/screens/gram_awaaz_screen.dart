@@ -76,17 +76,53 @@ class _GramAwaazScreenState extends State<GramAwaazScreen> {
   String?       _error;
   String?       _selectedDept;
   String? _userRole;
+  String? _userBadge;
+  String _sortBy         = 'upvotes'; // 'upvotes' | 'latest'
+  int    _displayCount   = 15;
+  final  ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
     _loadUserRole();
     _fetchPosts();
+    _scrollController.addListener(() {
+      if (_scrollController.position.pixels >=
+          _scrollController.position.maxScrollExtent - 200) {
+        if (_displayCount < _posts.length) {
+          setState(() => _displayCount += 10);
+        }
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  List<dynamic> get _displayedPosts {
+    final sorted = List.from(_posts);
+    if (_sortBy == 'latest') {
+      sorted.sort((a, b) {
+        final dateA = DateTime.tryParse(a['created_at'] ?? '') ?? DateTime(0);
+        final dateB = DateTime.tryParse(b['created_at'] ?? '') ?? DateTime(0);
+        return dateB.compareTo(dateA);
+      });
+    } else {
+      sorted.sort((a, b) =>
+          (b['upvote_count'] ?? 0).compareTo(a['upvote_count'] ?? 0));
+    }
+    return sorted.take(_displayCount).toList();
   }
 
   Future<void> _loadUserRole() async {
     final prefs = await SharedPreferences.getInstance();
-    if (mounted) setState(() => _userRole = prefs.getString('user_role'));
+    if (mounted) setState(() {
+      _userRole  = prefs.getString('user_role');
+      _userBadge = prefs.getString('badge');
+    });
   }
 
   Future<void> _fetchPosts() async {
@@ -151,6 +187,7 @@ class _GramAwaazScreenState extends State<GramAwaazScreen> {
         postSnap: post,          // ✅ pass list data for instant display
         onUpvote: () => _upvotePost(post['id']),
         userRole:  _userRole,
+        userBadge: _userBadge,
         onDeleted: _fetchPosts,
       ),
     );
@@ -171,6 +208,17 @@ class _GramAwaazScreenState extends State<GramAwaazScreen> {
           IconButton(icon: const Icon(Icons.refresh), onPressed: _fetchPosts),
         ],
       ),
+      floatingActionButton: (_userBadge == 'durbe_niwasi' ||
+              _userRole == 'admin' || _userRole == 'super_admin')
+          ? FloatingActionButton.extended(
+              backgroundColor: AppColors.primary,
+              onPressed: _openCreatePost,
+              icon: const Icon(Icons.add, color: Colors.white),
+              label: Text('नई शिकायत',
+                  style: GoogleFonts.notoSansDevanagari(
+                      color: Colors.white, fontWeight: FontWeight.w600)),
+            )
+          : null,
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -187,16 +235,42 @@ class _GramAwaazScreenState extends State<GramAwaazScreen> {
           _buildFilterRow(),
           if (!_isLoading && _error == null)
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 10, 16, 4),
+              padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
               child: Row(children: [
                 Text('${_posts.length} शिकायतें',
                   style: GoogleFonts.notoSansDevanagari(
                     fontSize: 13, color: AppColors.textSecondary,
                     fontWeight: FontWeight.w500)),
-                const SizedBox(width: 6),
-                Text('• सबसे ज़्यादा समर्थन पहले',
-                  style: GoogleFonts.notoSansDevanagari(
-                    fontSize: 12, color: AppColors.textHint)),
+                const Spacer(),
+                // ✅ Sort toggle
+                GestureDetector(
+                  onTap: () => setState(() {
+                    _sortBy = _sortBy == 'upvotes' ? 'latest' : 'upvotes';
+                    _displayCount = 15;
+                  }),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 10, vertical: 5),
+                    decoration: BoxDecoration(
+                      color: AppColors.cardBg,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: AppColors.border),
+                    ),
+                    child: Row(mainAxisSize: MainAxisSize.min, children: [
+                      Icon(
+                        _sortBy == 'upvotes'
+                            ? Icons.thumb_up_outlined
+                            : Icons.access_time_rounded,
+                        size: 12, color: AppColors.primary),
+                      const SizedBox(width: 4),
+                      Text(
+                        _sortBy == 'upvotes' ? 'Most Supported' : 'Latest',
+                        style: GoogleFonts.inter(
+                            fontSize: 11, fontWeight: FontWeight.w600,
+                            color: AppColors.primary)),
+                    ]),
+                  ),
+                ),
               ]),
             ),
           Expanded(
@@ -210,29 +284,40 @@ class _GramAwaazScreenState extends State<GramAwaazScreen> {
                             onRefresh: _fetchPosts,
                             color: AppColors.primary,
                             child: ListView.builder(
+                              controller: _scrollController,
                               padding: const EdgeInsets.fromLTRB(12, 4, 12, 100),
-                              itemCount: _posts.length,
-                              itemBuilder: (_, i) => _PostCard(
-                                post: _posts[i],
-                                onTap: () => _openDetail(_posts[i]),
-                                onUpvote: () => _upvotePost(_posts[i]['id']),
-                              ),
+                              itemCount: _displayedPosts.length + 1,
+                              itemBuilder: (_, i) {
+                                if (i == _displayedPosts.length) {
+                                  // ✅ Footer: load more indicator or end message
+                                  return Padding(
+                                    padding: const EdgeInsets.symmetric(vertical: 16),
+                                    child: Center(
+                                      child: _displayCount < _posts.length
+                                          ? const SizedBox(
+                                              width: 20, height: 20,
+                                              child: CircularProgressIndicator(
+                                                  strokeWidth: 2))
+                                          : Text('सभी शिकायतें देख ली गई हैं',
+                                              style: GoogleFonts.notoSansDevanagari(
+                                                  fontSize: 12,
+                                                  color: AppColors.textHint)),
+                                    ),
+                                  );
+                                }
+                                return _PostCard(
+                                  post: _displayedPosts[i],
+                                  onTap: () => _openDetail(_displayedPosts[i]),
+                                  onUpvote: () => _upvotePost(_displayedPosts[i]['id']),
+                                );
+                              },
                             ),
                           ),
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _openCreatePost,
-        backgroundColor: AppColors.cta,
-        icon: const Icon(Icons.campaign, color: Colors.white),
-        label: Text('आवाज़ उठाएं',
-          style: GoogleFonts.notoSansDevanagari(
-            color: Colors.white, fontWeight: FontWeight.bold)),
-      ),
     );
   }
-
   Widget _buildFilterRow() {
     return Container(
       height: 50,
@@ -452,11 +537,13 @@ class _PostDetailSheet extends StatefulWidget {
   final dynamic  postSnap;
   final VoidCallback onUpvote;
   final String?  userRole;
+  final String? userBadge;
   final VoidCallback? onDeleted;
   const _PostDetailSheet({
     required this.postId,
     required this.postSnap,
     required this.onUpvote,
+    this.userBadge,
     this.userRole,
     this.onDeleted,
   });
@@ -642,9 +729,11 @@ class _PostDetailSheetState extends State<_PostDetailSheet> {
                       fontSize: 13, color: AppColors.textSecondary)),
                 ]),
 
+                const SizedBox(height: 12),
+                // ✅ Poster identity + date
+                _buildPosterRow(post),
                 const SizedBox(height: 14),
                 Divider(color: AppColors.border),
-                const SizedBox(height: 10),
 
                 // ✅ Description — now shows because we fetched full detail
                 if (post['description'] != null) ...[
@@ -708,7 +797,16 @@ class _PostDetailSheetState extends State<_PostDetailSheet> {
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton.icon(
-                    onPressed: widget.onUpvote,
+                    onPressed: (widget.userRole == 'admin' ||
+                            widget.userRole == 'super_admin' ||
+                            widget.userBadge == 'durbe_niwasi')
+                        ? widget.onUpvote
+                        : () => ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  'केवल Durbe Niwasi ही समर्थन कर सकते हैं।',
+                                  style: GoogleFonts.notoSansDevanagari()),
+                              )),
                     icon: const Icon(Icons.thumb_up_alt, color: Colors.white),
                     label: Text('मैं भी समर्थन करता हूं',
                       style: GoogleFonts.notoSansDevanagari(
@@ -725,6 +823,48 @@ class _PostDetailSheetState extends State<_PostDetailSheet> {
         ),
       ]),
     );
+  }
+
+  Widget _buildPosterRow(Map<String, dynamic> post) {
+    final name     = post['poster_name'] ?? 'Durbe Niwasi';
+    final photo    = post['poster_photo'] as String?;
+    final dateStr  = post['created_at'] as String?;
+
+    return Row(children: [
+      // Avatar
+      CircleAvatar(
+        radius: 16,
+        backgroundColor: AppColors.primaryLight,
+        backgroundImage: (photo != null && photo.isNotEmpty)
+            ? NetworkImage(photo) : null,
+        child: (photo == null || photo.isEmpty)
+            ? Text(name[0].toUpperCase(),
+                style: GoogleFonts.inter(
+                    fontSize: 13, fontWeight: FontWeight.w700,
+                    color: AppColors.primary))
+            : null,
+      ),
+      const SizedBox(width: 8),
+      Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text(name,
+            style: GoogleFonts.inter(
+                fontSize: 12, fontWeight: FontWeight.w600,
+                color: AppColors.textPrimary)),
+        if (dateStr != null)
+          Text(_formatDate(dateStr),
+              style: GoogleFonts.inter(
+                  fontSize: 11, color: AppColors.textHint)),
+      ]),
+    ]);
+  }
+
+  String _formatDate(String iso) {
+    try {
+      final dt = DateTime.parse(iso + 'Z').toLocal();
+      const m = ['','Jan','Feb','Mar','Apr','May','Jun',
+                  'Jul','Aug','Sep','Oct','Nov','Dec'];
+      return '${dt.day} ${m[dt.month]} ${dt.year}';
+    } catch (_) { return ''; }
   }
 
   // ══════════════════════════════════════════════════════════════════
@@ -819,7 +959,6 @@ class _PhotoGalleryState extends State<_PhotoGallery> {
     super.dispose();
   }
 }
-
 
 // ══════════════════════════════════════════════════════════════════
 // CREATE POST BOTTOM SHEET
@@ -1162,8 +1301,8 @@ class _CreatePostSheetState extends State<_CreatePostSheet> {
     _demandCtrl.dispose();
     super.dispose();
   }
-}
 
+}
 
 // ══════════════════════════════════════════════════════════════════
 // PHOTO SLOT — individual photo picker tile
@@ -1211,7 +1350,6 @@ class _PhotoSlot extends StatelessWidget {
                       fontSize: 10, color: AppColors.textHint)),
                 ]))
             : file != null
-                // ✅ Show picked photo with remove button
                 ? Stack(fit: StackFit.expand, children: [
                     ClipRRect(
                       borderRadius: BorderRadius.circular(10),
@@ -1228,7 +1366,6 @@ class _PhotoSlot extends StatelessWidget {
                         ),
                       )),
                   ])
-                // ✅ Empty slot — tap to pick
                 : Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [

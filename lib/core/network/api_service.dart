@@ -459,8 +459,11 @@ static Future<List<dynamic>> getVendorListings({String? category}) async {
     throw Exception(data['detail'] ?? 'Failed to claim residency');
   }
 
- // PATCH /auth/update-photo
-  static Future<void> updateProfilePhoto(String photoUrl) async {
+  // PATCH /auth/update-photo
+  // Returns the response body. Frontend uses badge_revoked flag.
+  // If user was verified (badge=durbe_niwasi) when changing DP,
+  // backend auto-revokes and returns: { message, badge_revoked: true, new_badge: 'none' }
+  static Future<Map<String, dynamic>> updateProfilePhoto(String photoUrl) async {  // ✅ CHANGE — returns Map now
     final token = await _getToken();
     final response = await http.patch(
       Uri.parse('${AppConstants.baseUrl}/auth/update-photo'),
@@ -470,17 +473,41 @@ static Future<List<dynamic>> getVendorListings({String? category}) async {
     if (response.statusCode != 200) {
       throw Exception('Failed to update photo: ${response.body}');
     }
+    return jsonDecode(response.body);
   }
 
-  // DELETE /auth/me
-  static Future<void> deleteAccount() async {
+  // POST /auth/request-account-deletion
+  // Step 1 of self-delete: backend verifies password, sends OTP.
+  // Returns { message, otp } — otp is echoed back for dev testing only.
+  static Future<Map<String, dynamic>> requestAccountDeletion(String password) async {  // ✅ NEW
     final token = await _getToken();
-    final response = await http.delete(
-      Uri.parse('${AppConstants.baseUrl}/auth/me'),
+    final response = await http.post(
+      Uri.parse('${AppConstants.baseUrl}/auth/request-account-deletion'),
       headers: _headers(token: token),
+      body: jsonEncode({'password': password}),
+    );
+    final body = jsonDecode(response.body);
+    if (response.statusCode != 200) {
+      throw Exception(body['detail'] ?? 'Failed to request deletion');
+    }
+    return body;
+  }
+
+  // POST /auth/delete-account
+  // Step 2: backend verifies password + OTP, soft-deletes + anonymizes PII.
+  static Future<void> deleteAccount({                                                  // ✅ CHANGE — new signature
+    required String password,
+    required String otpCode,
+  }) async {
+    final token = await _getToken();
+    final response = await http.post(
+      Uri.parse('${AppConstants.baseUrl}/auth/delete-account'),
+      headers: _headers(token: token),
+      body: jsonEncode({'password': password, 'otp_code': otpCode}),
     );
     if (response.statusCode != 200) {
-      throw Exception('Failed to delete account: ${response.body}');
+      final body = jsonDecode(response.body);
+      throw Exception(body['detail'] ?? 'Failed to delete account');
     }
   }
 
@@ -814,5 +841,153 @@ static Future<List<dynamic>> getVendorListings({String? category}) async {
     }
   }
 
+  // POST /banners/
+  static Future<void> createBanner(Map<String, dynamic> data) async {
+    final token = await _getToken();
+    final response = await http.post(
+      Uri.parse('${AppConstants.baseUrl}/banners/'),
+      headers: _headers(token: token),
+      body: jsonEncode(data),
+    );
+    if (response.statusCode != 201) {
+      final body = jsonDecode(response.body);
+      throw Exception(body['detail'] ?? 'Failed to create banner');
+    }
+  }
+
+  // DELETE /banners/{id}
+  static Future<void> deleteBanner(String bannerId) async {
+    final token = await _getToken();
+    final response = await http.delete(
+      Uri.parse('${AppConstants.baseUrl}/banners/$bannerId'),
+      headers: _headers(token: token),
+    );
+    if (response.statusCode != 200) {
+      final body = jsonDecode(response.body);
+      throw Exception(body['detail'] ?? 'Failed to delete banner');
+    }
+  }
+
+  // POST /neta/leaders
+  static Future<void> createNeta(Map<String, dynamic> data) async {
+    final token = await _getToken();
+    final response = await http.post(
+      Uri.parse('${AppConstants.baseUrl}/neta/leaders'),
+      headers: _headers(token: token),
+      body: jsonEncode(data),
+    );
+    if (response.statusCode != 201) {
+      final body = jsonDecode(response.body);
+      throw Exception(body['detail'] ?? 'Failed to add leader');
+    }
+  }
+
+  static Future<void> createContact(Map<String, dynamic> data) async {
+    final token = await _getToken();
+    final response = await http.post(
+      Uri.parse('${AppConstants.baseUrl}/contacts/'),
+      headers: _headers(token: token),
+      body: jsonEncode(data),
+    );
+    if (response.statusCode != 200 && response.statusCode != 201) {
+      String detail = 'Failed to save. Please try again.';
+      if (response.body.isNotEmpty) {
+        try {
+          final body = jsonDecode(response.body);
+          detail = body['detail'] ?? detail;
+        } catch (_) {}
+      }
+      throw Exception(detail);
+    }
+  }
+
+  static Future<void> createScheme(Map<String, dynamic> data) async {
+    final token = await _getToken();
+    final response = await http.post(
+      Uri.parse('${AppConstants.baseUrl}/schemes'),
+      headers: _headers(token: token),
+      body: jsonEncode(data),
+    );
+    if (response.statusCode != 200 && response.statusCode != 201) {
+      String detail = 'Failed to save. Please try again.';
+      if (response.body.isNotEmpty) {
+        try {
+          final body = jsonDecode(response.body);
+          detail = body['detail'] ?? detail;
+        } catch (_) {}
+      }
+      throw Exception(detail);
+    }
+  }
+
+  // DELETE /schemes/{id}
+  // Soft-deletes the scheme (backend sets is_active=False).
+  // Backend gates on admin/super_admin role.
+  static Future<void> deleteScheme(String schemeId) async {                       // ✅ ADD
+    final token = await _getToken();
+    final response = await http.delete(
+      Uri.parse('${AppConstants.baseUrl}/schemes/$schemeId'),
+      headers: _headers(token: token),
+    );
+    if (response.statusCode != 200) {
+      String detail = 'Failed to delete scheme.';
+      if (response.body.isNotEmpty) {
+        try {
+          final body = jsonDecode(response.body);
+          detail = body['detail'] ?? detail;
+        } catch (_) {}
+      }
+      throw Exception(detail);
+    }
+  }
+
+  static Future<void> createGuide(Map<String, dynamic> data) async {
+    final token = await _getToken();
+    final response = await http.post(
+      Uri.parse('${AppConstants.baseUrl}/guides/'),
+      headers: _headers(token: token),
+      body: jsonEncode(data),
+    );
+    if (response.statusCode != 200 && response.statusCode != 201) {
+      String detail = 'Failed to save. Please try again.';
+      if (response.body.isNotEmpty) {
+        try {
+          final body = jsonDecode(response.body);
+          detail = body['detail'] ?? detail;
+        } catch (_) {}
+      }
+      throw Exception(detail);
+    }
+  }
+
+  // POST /community-members — add scheme beneficiary
+  static Future<void> addSchemeMember(
+      String schemeId, Map<String, dynamic> data) async {
+    final token = await _getToken();
+    final now = DateTime.now();
+    final today = '${now.year}-${now.month.toString().padLeft(2,'0')}-${now.day.toString().padLeft(2,'0')}';
+    final response = await http.post(
+      Uri.parse('${AppConstants.baseUrl}/community-members'),
+      headers: _headers(token: token),
+      body: jsonEncode({
+        'scheme_id':     schemeId,
+        'name':          data['name'],
+        'relative_name': data['relative_name'] ?? '',
+        'gender':        data['gender'],
+        'since_date':    today,
+        'village_id':    '1',
+      }),
+    );
+    if (response.statusCode != 200 && response.statusCode != 201) {
+      String detail = 'Failed to add member.';
+      if (response.body.isNotEmpty) {
+        try {
+          final body = jsonDecode(response.body);
+          detail = body['detail'] ?? detail;
+        } catch (_) {}
+      }
+      throw Exception(detail);
+    }
+  }
 
 }

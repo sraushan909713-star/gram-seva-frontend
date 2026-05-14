@@ -12,6 +12,7 @@ import '../../../core/theme/app_theme.dart';
 import '../../../core/network/api_service.dart';
 import 'neta_detail_screen.dart';
 import 'promises_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class NetaReportCardScreen extends StatefulWidget {
   const NetaReportCardScreen({super.key});
@@ -26,6 +27,7 @@ class _NetaReportCardScreenState extends State<NetaReportCardScreen> {
   Map<String, dynamic>? _window;
   bool _loading            = true;
   String _selectedFilter   = 'All';
+  String? _userRole;
 
   final List<String> _filters = [
     'All', 'Mukhiya', 'Sarpanch', 'Ward Member', 'MLA', 'MP', 'Other'
@@ -35,6 +37,12 @@ class _NetaReportCardScreenState extends State<NetaReportCardScreen> {
   void initState() {
     super.initState();
     _loadData();
+    _loadUserRole();
+  }
+
+  Future<void> _loadUserRole() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (mounted) setState(() => _userRole = prefs.getString('user_role'));
   }
 
   Future<void> _loadData() async {
@@ -174,6 +182,19 @@ class _NetaReportCardScreenState extends State<NetaReportCardScreen> {
           ),
         ],
       ),
+      floatingActionButton: (_userRole == 'admin' || _userRole == 'super_admin')
+          ? FloatingActionButton.extended(
+              backgroundColor: AppColors.primary,
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const _AddNetaScreen()),
+              ).then((_) => _loadData()),
+              icon: const Icon(Icons.person_add_rounded, color: Colors.white),
+              label: Text('Add Leader',
+                  style: GoogleFonts.inter(
+                      color: Colors.white, fontWeight: FontWeight.w600)),
+            )
+          : null,
       body: SafeArea(
         child: Column(
           children: [
@@ -448,4 +469,147 @@ class _NetaReportCardScreenState extends State<NetaReportCardScreen> {
     );
   }
 }
-// End of file
+
+// ══════════════════════════════════════════════════════════════
+// ADD NETA SCREEN — admin/super_admin only
+// ══════════════════════════════════════════════════════════════
+class _AddNetaScreen extends StatefulWidget {
+  const _AddNetaScreen({super.key});
+
+  @override
+  State<_AddNetaScreen> createState() => _AddNetaScreenState();
+}
+
+class _AddNetaScreenState extends State<_AddNetaScreen> {
+  final _nameCtrl          = TextEditingController();
+  final _designationCtrl   = TextEditingController();
+  final _constituencyCtrl  = TextEditingController();
+  final _partyCtrl         = TextEditingController();
+  bool  _saving            = false;
+
+  Future<void> _save() async {
+    if (_nameCtrl.text.trim().isEmpty ||
+        _designationCtrl.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('Name and designation are required.',
+            style: GoogleFonts.inter()),
+        backgroundColor: Colors.red,
+      ));
+      return;
+    }
+    setState(() => _saving = true);
+    try {
+      await ApiService.createNeta({
+        'name':          _nameCtrl.text.trim(),
+        'designation':   _designationCtrl.text.trim(),
+        'constituency':  _constituencyCtrl.text.trim().isEmpty
+            ? null : _constituencyCtrl.text.trim(),
+        'party':         _partyCtrl.text.trim().isEmpty
+            ? null : _partyCtrl.text.trim(),
+        'village_id':    1,
+      });
+      if (mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Leader added!', style: GoogleFonts.inter()),
+          backgroundColor: AppColors.primary,
+        ));
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _saving = false);
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(e.toString(), style: GoogleFonts.inter()),
+          backgroundColor: Colors.red,
+        ));
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      appBar: AppBar(
+        backgroundColor: AppColors.primary,
+        foregroundColor: Colors.white,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_rounded, size: 18),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: Text('Add Leader',
+            style: GoogleFonts.playfairDisplay(
+                fontSize: 20, fontWeight: FontWeight.w600,
+                color: Colors.white)),
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+
+          _label('Full Name *'),
+          _field(_nameCtrl, 'e.g. Ramesh Singh'),
+
+          _label('Designation *'),
+          _field(_designationCtrl, 'e.g. Mukhiya / Sarpanch / MLA / MP'),
+
+          _label('Constituency (optional)'),
+          _field(_constituencyCtrl, 'e.g. Durbe Panchayat'),
+
+          _label('Party (optional)'),
+          _field(_partyCtrl, 'e.g. JDU / RJD / BJP'),
+
+          const SizedBox(height: 24),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: _saving ? null : _save,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14)),
+                padding: const EdgeInsets.symmetric(vertical: 14),
+              ),
+              child: _saving
+                  ? const SizedBox(width: 20, height: 20,
+                      child: CircularProgressIndicator(
+                          color: Colors.white, strokeWidth: 2))
+                  : Text('Save Leader',
+                      style: GoogleFonts.inter(
+                          color: Colors.white, fontSize: 14,
+                          fontWeight: FontWeight.w600)),
+            ),
+          ),
+          const SizedBox(height: 32),
+        ]),
+      ),
+    );
+  }
+
+  Widget _label(String t) => Padding(
+    padding: const EdgeInsets.only(bottom: 6, top: 4),
+    child: Text(t, style: GoogleFonts.inter(
+        fontSize: 13, fontWeight: FontWeight.w600,
+        color: AppColors.textPrimary)),
+  );
+
+  Widget _field(TextEditingController c, String hint) => Padding(
+    padding: const EdgeInsets.only(bottom: 14),
+    child: TextField(
+      controller: c,
+      style: GoogleFonts.inter(fontSize: 13),
+      decoration: InputDecoration(
+        hintText: hint,
+        hintStyle: GoogleFonts.inter(color: AppColors.textHint, fontSize: 13),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: AppColors.border)),
+        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: AppColors.border)),
+        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: AppColors.primary)),
+        filled: true, fillColor: Colors.white,
+      ),
+    ),
+  );
+}
