@@ -1,0 +1,162 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 170" width="100%" height="100%" preserveAspectRatio="xMidYMid meet">
+  <!-- Scene 4 BEFORE — Elder alone with confusing official letter
+       Cross-fades to schemes_after.svg in the cinematic. An elder sitting
+       cross-legged on a traditional woven charpai holds a tilted official
+       letter dense with text and a red government stamp. His face is
+       concentrated, slightly furrowed. A small "?" floats next to him —
+       the universal sign of confusion. No helper. The "pain point": rights
+       he has but cannot navigate alone. -->
+
+  <!-- Sun (upper-right, dimmer for muted mood) -->
+  <circle cx="234" cy="24" r="13" fill="#F5B940" opacity="0.16"/>
+  <circle cx="234" cy="24" r="8" fill="#F5B940"/>
+  <g stroke="#F5B940" stroke-width="1.1" stroke-linecap="round" fill="none">
+    <line x1="234" y1="8" x2="234" y2="12"/>
+    <line x1="218" y1="24" x2="222" y2="24"/>
+    <line x1="246" y1="24" x2="250" y2="24"/>
+  </g>
+
+  <!-- Faded home in background (suggests "alone at home") -->
+  <g opacity="0.6">
+    <rect x="14" y="56" width="56" height="64" fill="#E6C9A8"/>
+    <polygon points="10,56 42,38 74,56" fill="#A23808"/>
+    <rect x="36" y="92" width="14" height="28" fill="#7A5230"/>
+    <rect x="22" y="68" width="12" height="12" fill="#FCE9D4"
+          stroke="#7A5230" stroke-width="0.5"/>
+    <rect x="52" y="68" width="12" height="12" fill="#FCE9D4"
+          stroke="#7A5230" stroke-width="0.5"/>
+  </g>
+
+  <!-- Ground -->
+  <path d="M 0,136 L 280,136 L 280,170 L 0,170 Z" fill="#9BC18A"/>
+
+  <!-- Traditional charpai (woven rope bed/seat) -->
+  <g>
+    <!-- Bed frame top bar -->
+    <rect x="90" y="112" width="120" height="5" fill="#8A6248" rx="1"/>
+    <!-- Woven rope pattern (diagonal cross-hatching) -->
+    <g stroke="#5A3B22" stroke-width="0.6" fill="none">
+      <!-- Diagonal lines one way -->
+      <line x1="99" y1="112" x2="103" y2="116"/>
+      <line x1="107" y1="112" x2="111" y2="116"/>
+      <line x1="115" y1="112" x2="119" y2="116"/>
+      <line x1="123" y1="112" x2="127" y2="116"/>
+      <line x1="131" y1="112" x2="135" y2="116"/>
+      <line x1="139" y1="112" x2="143" y2="116"/>
+      <line x1="147" y1="112" x2="151" y2="116"/>
+      <line x1="155" y1="112" x2="159" y2="116"/>
+      <line x1="163" y1="112" x2="167" y2="116"/>
+      <line x1="171" y1="112" x2="175" y2="116"/>
+      <line x1="179" y1="112" x2="183" y2="116"/>
+      <line x1="187" y1="112" x2="191" y2="116"/>
+      <line x1="195" y1="112" x2="199" y2="116"/>
+      <line x1="203" y1="112" x2="207" y2="116"/>
+    </g>
+    <!-- Vertical rope strands -->
+    <g stroke="#3A2A1A" stroke-width="0.6" fill="none">
+      <line x1="99" y1="112" x2="99" y2="122"/>
+      <line x1="115" y1="112" x2="115" y2="122"/>
+      <line x1="131" y1="112" x2="131" y2="122"/>
+      <line x1="147" y1="112" x2="147" y2="122"/>
+      <line x1="163" y1="112" x2="163" y2="122"/>
+      <line x1="179" y1="112" x2="179" y2="122"/>
+      <line x1="195" y1="112" x2="195" y2="122"/>
+    </g>
+    <!-- Charpai legs (four wooden posts) -->
+    <rect x="98" y="122" width="5" height="14" fill="#7A5230" rx="0.8"/>
+    <rect x="204" y="122" width="5" height="14" fill="#7A5230" rx="0.8"/>
+    <rect x="150" y="120" width="5" height="8" fill="#7A5230" rx="0.8"/>
+  </g>
+
+  <!-- Elder villager sitting cross-legged on the charpai -->
+  <g>
+    <!-- Shadow under elder -->
+    <ellipse cx="150" cy="112" rx="36" ry="2.5" fill="#000" opacity="0.08"/>
+
+    <!-- Folded legs (cross-legged, visible as two rounded shapes) -->
+    <rect x="130" y="98" width="6" height="20" fill="#7A5230" rx="1.5"/>
+    <rect x="164" y="98" width="6" height="20" fill="#7A5230" rx="1.5"/>
+    <!-- The seated lap (a flat shape between the legs) -->
+    <path d="M 132,108 L 132,118 L 168,118 L 168,108 L 160,106 L 155,110 L 150,108 L 144,112 L 138,108 Z"
+          fill="#FCE9D4"/>
+    <path d="M 132,108 L 132,118 L 168,118 L 168,108"
+          fill="none" stroke="#7A5230" stroke-width="0.5"/>
+
+    <!-- Torso (kurta in soft sage green) -->
+    <rect x="128" y="70" width="44" height="32" fill="#5A7B4A" rx="3"/>
+
+    <!-- Arms reaching forward to hold the letter -->
+    <path d="M 124,90 Q 116,94 114,100" stroke="#D6A07A" stroke-width="5"
+          fill="none" stroke-linecap="round"/>
+    <path d="M 176,90 Q 184,94 186,100" stroke="#D6A07A" stroke-width="5"
+          fill="none" stroke-linecap="round"/>
+
+    <!-- Head -->
+    <circle cx="150" cy="60" r="11" fill="#D6A07A"/>
+    <!-- Grey/elderly hair (was warm dark in other figures) -->
+    <path d="M 140,58 Q 150,48 160,58 Q 158,52 150,51 Q 142,52 140,58 Z"
+          fill="#9C8E78"/>
+    <!-- Subtle hair-strand suggestion -->
+    <path d="M 144,57 q 0,-1 1,-1 q 4,-1 10,0 q 1,0 1,1"
+          stroke="#7A6A5A" stroke-width="0.3" fill="none"/>
+    <!-- Subtle beard (elderly look) -->
+    <path d="M 142,66 q 0,-2 2,-2 q 6,-1 12,0 q 0,2 -2,3 q -6,2 -12,-1"
+          fill="#7A6A5A" opacity="0.7"/>
+    <!-- Eyes — squinting slightly, suggesting concentration -->
+    <circle cx="146" cy="60" r="0.8" fill="#3A2A1A"/>
+    <circle cx="154" cy="60" r="0.8" fill="#3A2A1A"/>
+    <!-- Furrowed brows -->
+    <path d="M 143,57 q 2,-1 4,0" stroke="#3A2A1A" stroke-width="0.6"
+          fill="none" stroke-linecap="round"/>
+    <path d="M 150,57 q 2,-1 4,0" stroke="#3A2A1A" stroke-width="0.6"
+          fill="none" stroke-linecap="round"/>
+    <!-- Mouth — slightly downturned, concerned -->
+    <path d="M 145,65 q 5,1 10,0" stroke="#3A2A1A" stroke-width="0.7"
+          fill="none" stroke-linecap="round"/>
+  </g>
+
+  <!-- The confusing official letter (tilted, held in front of elder) -->
+  <g transform="rotate(-10 120 88)">
+    <rect x="92" y="78" width="58" height="42" fill="#FCE9D4"
+          stroke="#3A2A1A" stroke-width="0.7"/>
+    <!-- Title -->
+    <text x="96" y="86" font-size="5" fill="#1F2937" font-weight="700"
+          font-family="serif">सरकारी सूचना</text>
+    <line x1="96" y1="89" x2="146" y2="89" stroke="#3A2A1A" stroke-width="0.3"/>
+    <!-- Dense paragraph lines -->
+    <g stroke="#3A2A1A" stroke-width="0.3" fill="none" opacity="0.8">
+      <line x1="96"  y1="93"  x2="146" y2="93"/>
+      <line x1="96"  y1="96"  x2="146" y2="96"/>
+      <line x1="96"  y1="99"  x2="143" y2="99"/>
+      <line x1="96"  y1="102" x2="146" y2="102"/>
+      <line x1="96"  y1="105" x2="144" y2="105"/>
+      <line x1="96"  y1="108" x2="146" y2="108"/>
+      <line x1="96"  y1="111" x2="140" y2="111"/>
+    </g>
+    <!-- Red government stamp -->
+    <circle cx="135" cy="115" r="6.5" fill="none"
+            stroke="#C2440A" stroke-width="0.7"/>
+    <circle cx="135" cy="115" r="4.5" fill="none"
+            stroke="#C2440A" stroke-width="0.4"/>
+    <text x="135" y="117" text-anchor="middle" font-size="3"
+          font-weight="700" fill="#C2440A">मुहर</text>
+  </g>
+
+  <!-- Floating "?" beside the elder's head — universal confusion symbol -->
+  <g>
+    <ellipse cx="168" cy="48" rx="3" ry="4" fill="none"
+             stroke="#3A2A1A" stroke-width="0.9" stroke-linecap="round"/>
+    <line x1="168" y1="44" x2="168" y2="42" stroke="#3A2A1A"
+          stroke-width="0.7" stroke-linecap="round"/>
+    <text x="168" y="41" text-anchor="middle" font-size="7"
+          fill="#3A2A1A" font-weight="700">?</text>
+  </g>
+
+  <!-- Small wildflowers at ground for warm palette consistency -->
+  <g>
+    <circle cx="48" cy="148" r="1.5" fill="#F5B940"/>
+    <line x1="48" y1="149.5" x2="48" y2="154" stroke="#4A6B3F" stroke-width="0.7"/>
+    <circle cx="232" cy="148" r="1.5" fill="#D9384E" opacity="0.85"/>
+    <line x1="232" y1="149.5" x2="232" y2="154" stroke="#4A6B3F" stroke-width="0.6"/>
+  </g>
+</svg>

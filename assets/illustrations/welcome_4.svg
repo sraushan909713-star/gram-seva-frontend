@@ -1,0 +1,178 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 170" width="100%" height="100%" preserveAspectRatio="xMidYMid meet">
+  <!-- Welcome Card 4 — Group celebration
+       Four villagers in a row with hands raised in joyful arrival.
+       Warm sun overhead with rays + sparkles. Ground foliage echoes
+       welcome_1 (sunrise) so the journey closes back on itself.
+       Palette: warm cream + soft greens + terracotta + gold — same
+       family as the other 11 illustrations. -->
+
+  <!-- ═════ Sky / sun overhead ═════ -->
+  <circle cx="140" cy="36" r="42" fill="#F5B940" opacity="0.10"/>
+  <circle cx="140" cy="36" r="28" fill="#F5B940" opacity="0.22"/>
+  <circle cx="140" cy="36" r="18" fill="#F5B940"/>
+
+  <!-- Sun rays -->
+  <g stroke="#F5B940" stroke-width="1.5" stroke-linecap="round" fill="none" opacity="0.9">
+    <line x1="140" y1="8"  x2="140" y2="14"/>
+    <line x1="112" y1="36" x2="118" y2="36"/>
+    <line x1="162" y1="36" x2="168" y2="36"/>
+    <line x1="120" y1="16" x2="124" y2="20"/>
+    <line x1="160" y1="16" x2="156" y2="20"/>
+    <line x1="120" y1="56" x2="124" y2="52"/>
+    <line x1="160" y1="56" x2="156" y2="52"/>
+  </g>
+
+  <!-- Sparkles in the sky -->
+  <g fill="#F5B940">
+    <path d="M 50,28 l 1.5,-4 l 1.5,4 l 4,1.5 l -4,1.5 l -1.5,4 l -1.5,-4 l -4,-1.5 z"/>
+    <path d="M 232,32 l 1.5,-4 l 1.5,4 l 4,1.5 l -4,1.5 l -1.5,4 l -1.5,-4 l -4,-1.5 z" opacity="0.85"/>
+    <path d="M 80,12 l 1,-3 l 1,3 l 3,1 l -3,1 l -1,3 l -1,-3 l -3,-1 z" opacity="0.75"/>
+    <path d="M 210,12 l 1,-3 l 1,3 l 3,1 l -3,1 l -1,3 l -1,-3 l -3,-1 z" opacity="0.75"/>
+    <circle cx="35"  cy="50" r="1.4"/>
+    <circle cx="248" cy="56" r="1.4"/>
+    <circle cx="100" cy="22" r="1.2" opacity="0.8"/>
+    <circle cx="180" cy="22" r="1.2" opacity="0.8"/>
+  </g>
+
+  <!-- Ground shadow under group -->
+  <ellipse cx="140" cy="155" rx="105" ry="5" fill="#000" opacity="0.08"/>
+
+  <!-- ═════ FIGURE 1 (leftmost) — short, both arms raised ═════ -->
+  <g>
+    <rect x="38" y="120" width="6" height="30" fill="#7A5230" rx="1.5"/>
+    <rect x="46" y="120" width="6" height="30" fill="#7A5230" rx="1.5"/>
+    <rect x="34" y="95"  width="22" height="28" fill="#C2440A" rx="3"/>
+    <circle cx="45" cy="85" r="9" fill="#E6B79E"/>
+    <path d="M 36,82 Q 45,73 54,82 Q 52,77 45,76 Q 38,77 36,82 Z" fill="#3A2A1A"/>
+    <!-- Both arms raised up -->
+    <path d="M 33,100 Q 22,75 28,62" stroke="#E6B79E" stroke-width="5.5"
+          fill="none" stroke-linecap="round"/>
+    <path d="M 57,100 Q 68,75 62,62" stroke="#E6B79E" stroke-width="5.5"
+          fill="none" stroke-linecap="round"/>
+    <!-- Hand circles at top of arms -->
+    <circle cx="28" cy="60" r="3" fill="#E6B79E"/>
+    <circle cx="62" cy="60" r="3" fill="#E6B79E"/>
+    <!-- Feet -->
+    <ellipse cx="41" cy="152" rx="4" ry="2" fill="#3A2A1A"/>
+    <ellipse cx="49" cy="152" rx="4" ry="2" fill="#3A2A1A"/>
+    <!-- Face -->
+    <circle cx="42" cy="85" r="0.7" fill="#3A2A1A"/>
+    <circle cx="48" cy="85" r="0.7" fill="#3A2A1A"/>
+    <path d="M 42,89 Q 45,92 48,89" stroke="#3A2A1A" stroke-width="0.8"
+          fill="none" stroke-linecap="round"/>
+  </g>
+
+  <!-- ═════ FIGURE 2 — taller (woman with saree), both arms raised ═════ -->
+  <g>
+    <rect x="92"  y="118" width="6" height="32" fill="#3F5470" rx="1.5"/>
+    <rect x="100" y="118" width="6" height="32" fill="#3F5470" rx="1.5"/>
+    <rect x="87" y="90"  width="24" height="30" fill="#D9A55D" rx="3"/>
+    <rect x="87" y="115" width="24" height="5" fill="#C2440A" rx="1.5"/>
+    <circle cx="99" cy="79" r="9.5" fill="#D6A07A"/>
+    <!-- Long hair gathered -->
+    <path d="M 89,76 Q 99,66 109,76 L 109,82 Q 99,75 89,82 Z" fill="#3A2A1A"/>
+    <!-- Bindi -->
+    <circle cx="99" cy="73" r="0.9" fill="#C2440A"/>
+    <!-- Both arms raised up -->
+    <path d="M 86,96 Q 75,68 80,55" stroke="#D6A07A" stroke-width="5.5"
+          fill="none" stroke-linecap="round"/>
+    <path d="M 112,96 Q 123,68 118,55" stroke="#D6A07A" stroke-width="5.5"
+          fill="none" stroke-linecap="round"/>
+    <!-- Hands -->
+    <circle cx="80" cy="53" r="3" fill="#D6A07A"/>
+    <circle cx="118" cy="53" r="3" fill="#D6A07A"/>
+    <!-- Feet -->
+    <ellipse cx="95"  cy="152" rx="4" ry="2" fill="#3A2A1A"/>
+    <ellipse cx="103" cy="152" rx="4" ry="2" fill="#3A2A1A"/>
+    <!-- Face -->
+    <circle cx="96" cy="80" r="0.7" fill="#3A2A1A"/>
+    <circle cx="102" cy="80" r="0.7" fill="#3A2A1A"/>
+    <path d="M 96,84 Q 99,87 102,84" stroke="#3A2A1A" stroke-width="0.8"
+          fill="none" stroke-linecap="round"/>
+  </g>
+
+  <!-- ═════ FIGURE 3 — taller (man), both arms raised ═════ -->
+  <g>
+    <rect x="156" y="118" width="6" height="32" fill="#4A6B3F" rx="1.5"/>
+    <rect x="164" y="118" width="6" height="32" fill="#4A6B3F" rx="1.5"/>
+    <rect x="151" y="90"  width="24" height="30" fill="#9BC18A" rx="3"/>
+    <circle cx="163" cy="80" r="9.5" fill="#E6B79E"/>
+    <path d="M 153,77 Q 163,67 173,77 Q 171,72 163,71 Q 155,72 153,77 Z" fill="#3A2A1A"/>
+    <!-- Both arms raised up -->
+    <path d="M 150,96 Q 139,68 144,55" stroke="#E6B79E" stroke-width="5.5"
+          fill="none" stroke-linecap="round"/>
+    <path d="M 176,96 Q 187,68 182,55" stroke="#E6B79E" stroke-width="5.5"
+          fill="none" stroke-linecap="round"/>
+    <!-- Hands -->
+    <circle cx="144" cy="53" r="3" fill="#E6B79E"/>
+    <circle cx="182" cy="53" r="3" fill="#E6B79E"/>
+    <!-- Feet -->
+    <ellipse cx="159" cy="152" rx="4" ry="2" fill="#3A2A1A"/>
+    <ellipse cx="167" cy="152" rx="4" ry="2" fill="#3A2A1A"/>
+    <!-- Face -->
+    <circle cx="160" cy="81" r="0.7" fill="#3A2A1A"/>
+    <circle cx="166" cy="81" r="0.7" fill="#3A2A1A"/>
+    <path d="M 160,85 Q 163,88 166,85" stroke="#3A2A1A" stroke-width="0.8"
+          fill="none" stroke-linecap="round"/>
+  </g>
+
+  <!-- ═════ FIGURE 4 (rightmost) — shorter (elder), both arms raised ═════ -->
+  <g>
+    <rect x="216" y="120" width="6" height="30" fill="#7A5230" rx="1.5"/>
+    <rect x="224" y="120" width="6" height="30" fill="#7A5230" rx="1.5"/>
+    <rect x="212" y="95"  width="22" height="28" fill="#5A7B4A" rx="3"/>
+    <circle cx="223" cy="85" r="9" fill="#D6A07A"/>
+    <!-- Hair (slightly grey, elder) -->
+    <path d="M 214,82 Q 223,73 232,82 Q 230,77 223,76 Q 216,77 214,82 Z" fill="#7A6A5A"/>
+    <!-- Both arms raised up -->
+    <path d="M 211,100 Q 200,75 206,62" stroke="#D6A07A" stroke-width="5.5"
+          fill="none" stroke-linecap="round"/>
+    <path d="M 235,100 Q 246,75 240,62" stroke="#D6A07A" stroke-width="5.5"
+          fill="none" stroke-linecap="round"/>
+    <!-- Hands -->
+    <circle cx="206" cy="60" r="3" fill="#D6A07A"/>
+    <circle cx="240" cy="60" r="3" fill="#D6A07A"/>
+    <!-- Feet -->
+    <ellipse cx="219" cy="152" rx="4" ry="2" fill="#3A2A1A"/>
+    <ellipse cx="227" cy="152" rx="4" ry="2" fill="#3A2A1A"/>
+    <!-- Face -->
+    <circle cx="220" cy="85" r="0.7" fill="#3A2A1A"/>
+    <circle cx="226" cy="85" r="0.7" fill="#3A2A1A"/>
+    <path d="M 220,89 Q 223,92 226,89" stroke="#3A2A1A" stroke-width="0.8"
+          fill="none" stroke-linecap="round"/>
+  </g>
+
+  <!-- ═════ Ground foliage left side ═════ -->
+  <g>
+    <path d="M 14,160 Q 12,152 14,146" stroke="#4A6B3F" stroke-width="1.4"
+          fill="none" stroke-linecap="round"/>
+    <path d="M 18,160 Q 20,150 18,144" stroke="#4A6B3F" stroke-width="1.4"
+          fill="none" stroke-linecap="round"/>
+    <path d="M 22,160 Q 20,153 22,148" stroke="#5A7B4A" stroke-width="1.4"
+          fill="none" stroke-linecap="round"/>
+    <circle cx="26" cy="156" r="1.6" fill="#F5B940"/>
+    <line x1="26" y1="157" x2="26" y2="161" stroke="#4A6B3F" stroke-width="0.7"/>
+  </g>
+
+  <!-- ═════ Ground foliage right side ═════ -->
+  <g>
+    <path d="M 256,160 Q 254,152 256,146" stroke="#4A6B3F" stroke-width="1.4"
+          fill="none" stroke-linecap="round"/>
+    <path d="M 260,160 Q 262,150 260,144" stroke="#4A6B3F" stroke-width="1.4"
+          fill="none" stroke-linecap="round"/>
+    <path d="M 264,160 Q 262,153 264,148" stroke="#5A7B4A" stroke-width="1.4"
+          fill="none" stroke-linecap="round"/>
+    <circle cx="252" cy="156" r="1.6" fill="#D9384E"/>
+    <line x1="252" y1="157" x2="252" y2="161" stroke="#4A6B3F" stroke-width="0.7"/>
+  </g>
+
+  <!-- ═════ Confetti/joy marks between figures and overhead ═════ -->
+  <g>
+    <circle cx="72"  cy="68" r="1.5" fill="#C2440A"/>
+    <circle cx="132" cy="60" r="1.5" fill="#F5B940"/>
+    <circle cx="148" cy="60" r="1.5" fill="#D9384E"/>
+    <circle cx="200" cy="68" r="1.5" fill="#C2440A"/>
+    <circle cx="90"  cy="48" r="1.2" fill="#F5B940" opacity="0.85"/>
+    <circle cx="190" cy="48" r="1.2" fill="#F5B940" opacity="0.85"/>
+  </g>
+</svg>

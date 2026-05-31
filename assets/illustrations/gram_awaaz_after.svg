@@ -1,0 +1,92 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 170" width="100%" height="100%" preserveAspectRatio="xMidYMid meet">
+  <!-- Scene 1 AFTER — Gram Awaaz: road has been fixed
+       Cross-fades from gram_awaaz.svg in the cinematic. Same villager, same
+       framing, same sun. The road's broken/cracked surface is now smooth
+       paved tarmac with road markings; a big green check sits at the
+       centre. The framed photo record above gets a small green corner
+       overlay (the report has been resolved). The villager has lowered
+       the phone to their side — the work of reporting is done. -->
+
+  <!-- Sun (upper-right) -->
+  <circle cx="230" cy="36" r="16" fill="#F5B940" opacity="0.18"/>
+  <circle cx="230" cy="36" r="10" fill="#F5B940"/>
+  <g stroke="#F5B940" stroke-width="1.2" stroke-linecap="round" fill="none">
+    <line x1="230" y1="18" x2="230" y2="22"/>
+    <line x1="212" y1="36" x2="216" y2="36"/>
+    <line x1="244" y1="36" x2="248" y2="36"/>
+  </g>
+
+  <!-- Framed photo record (top-right) with green check corner overlay -->
+  <g>
+    <rect x="172" y="30" width="58" height="44" fill="#FCE9D4" rx="2"/>
+    <rect x="172" y="30" width="58" height="44" fill="none" stroke="#7A5230" stroke-width="1" rx="2"/>
+    <!-- Small landscape inside the frame -->
+    <path d="M 178,62 Q 188,54 196,60 Q 206,52 216,60 Q 222,64 224,68 L 178,68 Z" fill="#9BC18A"/>
+    <circle cx="208" cy="46" r="2.5" fill="#C2440A"/>
+    <path d="M 208,44 L 208,52" stroke="#C2440A" stroke-width="0.9"/>
+    <!-- Green check overlay in upper-right corner (resolved) -->
+    <circle cx="224" cy="40" r="7" fill="#4A6B3F"/>
+    <path d="M 220,40 l 2.5,2.5 l 5,-5" stroke="#FFFFFF" stroke-width="1.6"
+          fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+
+  <!-- Dashed connector from phone to framed record -->
+  <g stroke="#9BC18A" stroke-width="1.2" fill="none" stroke-dasharray="2.5,3" opacity="0.8">
+    <path d="M 84,86 Q 122,76 170,60"/>
+  </g>
+
+  <!-- The road — now smooth, paved, with road markings -->
+  <rect x="14" y="106" width="252" height="32" fill="#5A5A5A" rx="2"/>
+  <!-- Dashed centre lines (road markings) -->
+  <line x1="30"  y1="122" x2="46"  y2="122" stroke="#FFFFFF" stroke-width="1.4" stroke-dasharray="4,7" opacity="0.7"/>
+  <line x1="80"  y1="122" x2="96"  y2="122" stroke="#FFFFFF" stroke-width="1.4" stroke-dasharray="4,7" opacity="0.7"/>
+  <line x1="184" y1="122" x2="200" y2="122" stroke="#FFFFFF" stroke-width="1.4" stroke-dasharray="4,7" opacity="0.7"/>
+  <line x1="234" y1="122" x2="250" y2="122" stroke="#FFFFFF" stroke-width="1.4" stroke-dasharray="4,7" opacity="0.7"/>
+
+  <!-- Big green check on the road (problem solved) -->
+  <circle cx="140" cy="122" r="12" fill="#4A6B3F"/>
+  <path d="M 134,122 l 3.5,3.5 l 7,-7" stroke="#FFFFFF" stroke-width="2.2"
+        fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- Roadside foliage — life returning -->
+  <g>
+    <circle cx="30" cy="144" r="3" fill="#9BC18A"/>
+    <line x1="30" y1="146" x2="30" y2="152" stroke="#4A6B3F" stroke-width="1"/>
+    <path d="M 30,148 q -2,-1.5 -3.5,0" stroke="#4A6B3F" stroke-width="0.6" fill="none"/>
+    <path d="M 30,148 q 2,-1.5 3.5,0" stroke="#4A6B3F" stroke-width="0.6" fill="none"/>
+    <circle cx="60" cy="148" r="1.5" fill="#F5B940"/>
+    <line x1="60" y1="149.5" x2="60" y2="154" stroke="#4A6B3F" stroke-width="0.6"/>
+    <circle cx="234" cy="148" r="1.5" fill="#D9384E"/>
+    <line x1="234" y1="149.5" x2="234" y2="154" stroke="#4A6B3F" stroke-width="0.6"/>
+    <circle cx="250" cy="146" r="2.5" fill="#9BC18A"/>
+    <line x1="250" y1="148" x2="250" y2="153" stroke="#4A6B3F" stroke-width="0.8"/>
+  </g>
+
+  <!-- Villager — standing relaxed, phone now LOWERED to their side -->
+  <g>
+    <!-- Legs -->
+    <rect x="64" y="118" width="6" height="22" fill="#3F5470" rx="1.5"/>
+    <rect x="72" y="118" width="6" height="22" fill="#3F5470" rx="1.5"/>
+    <!-- Torso -->
+    <rect x="60" y="94" width="22" height="26" fill="#C2440A" rx="3"/>
+    <!-- Head -->
+    <circle cx="71" cy="84" r="9" fill="#E6B79E"/>
+    <path d="M 62,81 Q 71,72 80,81 Q 78,76 71,75 Q 64,76 62,81 Z" fill="#3A2A1A"/>
+    <!-- Face -->
+    <circle cx="68" cy="84" r="0.7" fill="#3A2A1A"/>
+    <circle cx="74" cy="84" r="0.7" fill="#3A2A1A"/>
+    <path d="M 67,88 Q 71,91 75,88" stroke="#3A2A1A" stroke-width="0.8"
+          fill="none" stroke-linecap="round"/>
+    <!-- LEFT arm down at side (no longer raised) -->
+    <path d="M 60,100 Q 54,114 56,124" stroke="#E6B79E" stroke-width="5"
+          fill="none" stroke-linecap="round"/>
+    <!-- RIGHT arm down with PHONE in hand at hip level -->
+    <path d="M 82,100 Q 90,116 88,124" stroke="#E6B79E" stroke-width="5"
+          fill="none" stroke-linecap="round"/>
+    <rect x="85" y="122" width="8" height="13" fill="#1A1A1A" rx="1.2"/>
+    <rect x="86" y="123" width="6" height="8" fill="#3F5470" rx="0.5"/>
+    <!-- Feet -->
+    <ellipse cx="67" cy="142" rx="3.5" ry="1.6" fill="#3A2A1A"/>
+    <ellipse cx="75" cy="142" rx="3.5" ry="1.6" fill="#3A2A1A"/>
+  </g>
+</svg>

@@ -1,0 +1,159 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 170" width="100%" height="100%" preserveAspectRatio="xMidYMid meet">
+  <!-- Scene 3 BEFORE — Farmer walking to mandi with grain cart
+       Cross-fades to crop_prices_after.svg in the cinematic. The "old way":
+       no phone, no info. Farmer pulls a wooden cart loaded with 4 grain
+       sacks down a dusty path. The mandi is visible far in the distance.
+       Two birds in the sky for life. Two small dust clouds at his feet
+       suggest motion. -->
+
+  <!-- Sun (upper-right) -->
+  <circle cx="234" cy="22" r="14" fill="#F5B940" opacity="0.18"/>
+  <circle cx="234" cy="22" r="9" fill="#F5B940"/>
+  <g stroke="#F5B940" stroke-width="1.2" stroke-linecap="round" fill="none">
+    <line x1="234" y1="4" x2="234" y2="10"/>
+    <line x1="216" y1="22" x2="222" y2="22"/>
+    <line x1="246" y1="22" x2="252" y2="22"/>
+  </g>
+
+  <!-- Distant fields (back) -->
+  <path d="M 0,114 Q 60,108 130,112 T 280,116 L 280,128 L 0,128 Z" fill="#B8C99A"/>
+
+  <!-- Main ground -->
+  <path d="M 0,128 L 280,128 L 280,170 L 0,170 Z" fill="#9BC18A"/>
+
+  <!-- Dusty path running across -->
+  <path d="M 0,134 Q 60,130 130,134 T 280,132 L 280,150 L 0,150 Z"
+        fill="#D7BC8C" opacity="0.85"/>
+  <!-- Path texture - dashed lines suggesting long road -->
+  <g stroke="#A89070" stroke-width="0.7" fill="none"
+     stroke-dasharray="3,5" opacity="0.7">
+    <path d="M 14,140 Q 60,136 110,138 T 260,138"/>
+    <path d="M 14,145 Q 60,142 110,143 T 260,143"/>
+  </g>
+
+  <!-- Distant mandi (small, in upper-right area) -->
+  <g opacity="0.85">
+    <rect x="240" y="104" width="26" height="22" fill="#A89882"/>
+    <polygon points="238,104 253,94 268,104" fill="#7A4530"/>
+    <rect x="250" y="112" width="6" height="14" fill="#5A3B22"/>
+    <!-- Tiny sign on it -->
+    <rect x="244" y="108" width="6" height="3" fill="#FCE9D4" opacity="0.7"/>
+  </g>
+
+  <!-- The cart -->
+  <g>
+    <!-- Cart body (wooden box) -->
+    <rect x="118" y="100" width="60" height="32" fill="#8A6248"/>
+    <rect x="118" y="100" width="60" height="5" fill="#7A5230"/>
+    <rect x="118" y="129" width="60" height="3" fill="#5A3B22"/>
+    <line x1="133" y1="100" x2="133" y2="132" stroke="#5A3B22" stroke-width="0.5"/>
+    <line x1="148" y1="100" x2="148" y2="132" stroke="#5A3B22" stroke-width="0.5"/>
+    <line x1="163" y1="100" x2="163" y2="132" stroke="#5A3B22" stroke-width="0.5"/>
+
+    <!-- 4 grain sacks on top -->
+    <g>
+      <!-- sack 1 (left) -->
+      <ellipse cx="125" cy="94" rx="7" ry="4.5" fill="#D9C49A"/>
+      <ellipse cx="125" cy="94" rx="7" ry="4.5" fill="none"
+               stroke="#8A6248" stroke-width="0.5"/>
+      <line x1="122" y1="92" x2="128" y2="92" stroke="#7A5230" stroke-width="0.3"/>
+      <line x1="123" y1="95" x2="127" y2="95" stroke="#7A5230" stroke-width="0.3"/>
+      <!-- tie at top -->
+      <path d="M 124,89 q 1,-2 2,0" stroke="#5A3B22" stroke-width="0.5" fill="none"/>
+
+      <!-- sack 2 -->
+      <ellipse cx="140" cy="92" rx="7" ry="4.5" fill="#D9C49A"/>
+      <ellipse cx="140" cy="92" rx="7" ry="4.5" fill="none"
+               stroke="#8A6248" stroke-width="0.5"/>
+      <line x1="137" y1="90" x2="143" y2="90" stroke="#7A5230" stroke-width="0.3"/>
+      <line x1="138" y1="93" x2="142" y2="93" stroke="#7A5230" stroke-width="0.3"/>
+      <path d="M 139,87 q 1,-2 2,0" stroke="#5A3B22" stroke-width="0.5" fill="none"/>
+
+      <!-- sack 3 -->
+      <ellipse cx="156" cy="94" rx="7" ry="4.5" fill="#D9C49A"/>
+      <ellipse cx="156" cy="94" rx="7" ry="4.5" fill="none"
+               stroke="#8A6248" stroke-width="0.5"/>
+      <line x1="153" y1="92" x2="159" y2="92" stroke="#7A5230" stroke-width="0.3"/>
+      <line x1="154" y1="95" x2="158" y2="95" stroke="#7A5230" stroke-width="0.3"/>
+      <path d="M 155,89 q 1,-2 2,0" stroke="#5A3B22" stroke-width="0.5" fill="none"/>
+
+      <!-- sack 4 (right) -->
+      <ellipse cx="170" cy="92" rx="7" ry="4.5" fill="#D9C49A"/>
+      <ellipse cx="170" cy="92" rx="7" ry="4.5" fill="none"
+               stroke="#8A6248" stroke-width="0.5"/>
+      <line x1="167" y1="90" x2="173" y2="90" stroke="#7A5230" stroke-width="0.3"/>
+      <line x1="168" y1="93" x2="172" y2="93" stroke="#7A5230" stroke-width="0.3"/>
+      <path d="M 169,87 q 1,-2 2,0" stroke="#5A3B22" stroke-width="0.5" fill="none"/>
+    </g>
+
+    <!-- Cart wheels -->
+    <circle cx="128" cy="138" r="9" fill="#3A2A1A"/>
+    <circle cx="128" cy="138" r="5" fill="#7A5230"/>
+    <circle cx="128" cy="138" r="2" fill="#3A2A1A"/>
+    <!-- spokes -->
+    <line x1="128" y1="133" x2="128" y2="143" stroke="#3A2A1A" stroke-width="0.6"/>
+    <line x1="123" y1="138" x2="133" y2="138" stroke="#3A2A1A" stroke-width="0.6"/>
+
+    <circle cx="170" cy="138" r="9" fill="#3A2A1A"/>
+    <circle cx="170" cy="138" r="5" fill="#7A5230"/>
+    <circle cx="170" cy="138" r="2" fill="#3A2A1A"/>
+    <line x1="170" y1="133" x2="170" y2="143" stroke="#3A2A1A" stroke-width="0.6"/>
+    <line x1="165" y1="138" x2="175" y2="138" stroke="#3A2A1A" stroke-width="0.6"/>
+
+    <!-- Cart pull-rope (from front of cart to farmer's hand) -->
+    <line x1="118" y1="112" x2="98" y2="106" stroke="#7A5230"
+          stroke-width="2" stroke-linecap="round"/>
+  </g>
+
+  <!-- Farmer pulling the cart -->
+  <g>
+    <!-- Legs -->
+    <rect x="78" y="100" width="6" height="28" fill="#3F5470" rx="1.5"/>
+    <rect x="86" y="100" width="6" height="28" fill="#3F5470" rx="1.5"/>
+    <!-- Torso -->
+    <rect x="74" y="74" width="22" height="28" fill="#C2440A" rx="3"/>
+    <!-- Turban / head wrap (rural farmer look) -->
+    <ellipse cx="85" cy="58" rx="11" ry="4" fill="#D9A55D"/>
+    <ellipse cx="85" cy="58" rx="11" ry="4" fill="none" stroke="#7A5230" stroke-width="0.6"/>
+    <ellipse cx="85" cy="54" rx="6" ry="3" fill="#E6B79E"/>
+    <!-- Head -->
+    <circle cx="85" cy="64" r="8" fill="#E6B79E"/>
+    <!-- Eyes -->
+    <circle cx="82" cy="64" r="0.7" fill="#3A2A1A"/>
+    <circle cx="88" cy="64" r="0.7" fill="#3A2A1A"/>
+    <!-- Mouth — neutral, focused on the walk -->
+    <path d="M 82,68 q 3,1 6,0" stroke="#3A2A1A" stroke-width="0.6"
+          fill="none" stroke-linecap="round"/>
+
+    <!-- Arms — front arm gripping the rope, back arm at side -->
+    <!-- Front (right side from farmer's perspective) arm gripping rope -->
+    <path d="M 96,80 Q 100,98 98,106" stroke="#E6B79E" stroke-width="5"
+          fill="none" stroke-linecap="round"/>
+    <!-- Visible hand grip -->
+    <circle cx="98" cy="106" r="2.5" fill="#E6B79E"/>
+    <!-- Back arm -->
+    <path d="M 74,80 Q 66,90 70,100" stroke="#E6B79E" stroke-width="5"
+          fill="none" stroke-linecap="round"/>
+
+    <!-- Feet — slightly apart, walking pose -->
+    <ellipse cx="80" cy="130" rx="4" ry="2" fill="#3A2A1A"/>
+    <ellipse cx="90" cy="130" rx="4" ry="2" fill="#3A2A1A"/>
+
+    <!-- Subtle shadow under farmer (heavy load) -->
+    <ellipse cx="85" cy="134" rx="14" ry="2" fill="#000" opacity="0.10"/>
+  </g>
+
+  <!-- Dust puffs at his feet — suggests motion + the dusty journey -->
+  <g opacity="0.55">
+    <circle cx="58" cy="148" r="1.6" fill="#D7BC8C"/>
+    <circle cx="68" cy="150" r="1.4" fill="#D7BC8C"/>
+    <circle cx="46" cy="150" r="1.8" fill="#D7BC8C"/>
+  </g>
+
+  <!-- Two birds in the sky for life and depth -->
+  <g stroke="#7A5230" stroke-width="1" fill="none" stroke-linecap="round"
+     opacity="0.7">
+    <path d="M 188,28 q 2.5,-2.5 5,0 q 2.5,-2.5 5,0"/>
+    <path d="M 204,18 q 2,-2 4,0 q 2,-2 4,0"/>
+  </g>
+</svg>
